@@ -10,14 +10,30 @@ const CLOUDINARY_CLOUD = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
 const CLOUDINARY_PRESET = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
 
 async function uploadToCloudinary(file, onProgress) {
+  // Fallback to hardcoded values in case env vars aren't loaded
+  const cloudName = CLOUDINARY_CLOUD || "dzhctf6ew";
+  const uploadPreset = CLOUDINARY_PRESET || "neevestate_uploads";
+
   const formData = new FormData();
   formData.append("file", file);
-  formData.append("upload_preset", CLOUDINARY_PRESET);
+  formData.append("upload_preset", uploadPreset);
   formData.append("folder", "neevestate");
 
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
-    xhr.open("POST", `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/image/upload`);
+    xhr.open("POST", `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`);
+    xhr.upload.onprogress = (e) => {
+      if (e.lengthComputable) onProgress(Math.round((e.loaded / e.total) * 100));
+    };
+    xhr.onload = () => {
+      const res = JSON.parse(xhr.responseText);
+      if (xhr.status === 200) resolve(res.secure_url);
+      else reject(new Error(res.error?.message || "Upload failed"));
+    };
+    xhr.onerror = () => reject(new Error("Upload failed"));
+    xhr.send(formData);
+  });
+}
     xhr.upload.onprogress = (e) => {
       if (e.lengthComputable) onProgress(Math.round((e.loaded / e.total) * 100));
     };
