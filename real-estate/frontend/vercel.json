@@ -1,5 +1,4 @@
 {
-  "rootDirectory": "real-estate/frontend",
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "installCommand": "npm install",
