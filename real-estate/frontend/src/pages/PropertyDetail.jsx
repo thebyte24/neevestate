@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
+import { doc, getDoc } from "firebase/firestore";
+import { db } from "../firebase";
 
 const ACCENT = "#7a5c2e";
 const ACCENT_LIGHT = "#f0e8df";
@@ -12,9 +14,11 @@ export default function PropertyDetail() {
   const [form, setForm] = useState({ name: "", phone: "", message: "" });
 
   useEffect(() => {
-    fetch(`/api/properties/${id}`)
-      .then((r) => r.json())
-      .then((data) => { setPlot(data); setLoading(false); })
+    getDoc(doc(db, "properties", id))
+      .then((snap) => {
+        if (snap.exists()) setPlot({ id: snap.id, ...snap.data() });
+        setLoading(false);
+      })
       .catch(() => setLoading(false));
   }, [id]);
 
@@ -36,7 +40,6 @@ export default function PropertyDetail() {
         ← Back to plots
       </Link>
 
-      {/* Image */}
       <div style={{ borderRadius: "16px", overflow: "hidden", height: "440px", marginBottom: "36px" }}>
         <img src={image} alt={title} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
       </div>
@@ -44,39 +47,19 @@ export default function PropertyDetail() {
       <div style={{ display: "grid", gridTemplateColumns: "1fr 340px", gap: "40px", alignItems: "start" }}>
         {/* Left */}
         <div>
-          {/* Badges */}
           <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", marginBottom: "14px" }}>
-            <span style={{
-              background: "#fff", border: "1px solid #c8bdb4", color: "#4a3728",
-              padding: "4px 14px", borderRadius: "20px", fontSize: "12px", fontWeight: 500,
-            }}>{badge}</span>
-            <span style={{
-              background: ACCENT_LIGHT, color: ACCENT,
-              padding: "4px 14px", borderRadius: "20px", fontSize: "12px", fontWeight: 500,
-            }}>{category}</span>
+            <span style={{ background: "#fff", border: "1px solid #c8bdb4", color: "#4a3728", padding: "4px 14px", borderRadius: "20px", fontSize: "12px", fontWeight: 500 }}>{badge}</span>
+            <span style={{ background: ACCENT_LIGHT, color: ACCENT, padding: "4px 14px", borderRadius: "20px", fontSize: "12px", fontWeight: 500 }}>{category}</span>
           </div>
 
-          <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: "32px", fontWeight: 800, marginBottom: "8px" }}>
-            {title}
-          </h1>
+          <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: "32px", fontWeight: 800, marginBottom: "8px" }}>{title}</h1>
           <p style={{ color: "#7a6655", marginBottom: "16px" }}>📍 {location}</p>
-
           <p style={{ fontFamily: "'Playfair Display', serif", fontSize: "28px", fontWeight: 700, color: ACCENT, marginBottom: "28px" }}>
-            ₹{price.toLocaleString("en-IN")} / {priceUnit}
+            ₹{Number(price).toLocaleString("en-IN")} / {priceUnit}
           </p>
 
-          {/* Plot details */}
-          <div style={{
-            display: "flex", gap: "32px", padding: "20px",
-            background: "#faf7f3", borderRadius: "12px", marginBottom: "28px",
-            border: "1px solid #e8ddd3", flexWrap: "wrap",
-          }}>
-            {[
-              { label: "Plot Size", value: sizeRange },
-              { label: "Facing", value: facing },
-              { label: "Approval", value: approvals },
-              { label: "Type", value: category },
-            ].map((d) => (
+          <div style={{ display: "flex", gap: "32px", padding: "20px", background: "#faf7f3", borderRadius: "12px", marginBottom: "28px", border: "1px solid #e8ddd3", flexWrap: "wrap" }}>
+            {[{ label: "Plot Size", value: sizeRange }, { label: "Facing", value: facing }, { label: "Approval", value: approvals }, { label: "Type", value: category }].map((d) => (
               <div key={d.label}>
                 <p style={{ fontSize: "12px", color: "#7a6655", marginBottom: "4px", textTransform: "uppercase", letterSpacing: "0.5px" }}>{d.label}</p>
                 <p style={{ fontWeight: 600, fontSize: "15px", color: "#2c1a0e" }}>{d.value}</p>
@@ -84,38 +67,23 @@ export default function PropertyDetail() {
             ))}
           </div>
 
-          <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: "19px", fontWeight: 700, marginBottom: "12px" }}>
-            About this plot
-          </h2>
+          <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: "19px", fontWeight: 700, marginBottom: "12px" }}>About this plot</h2>
           <p style={{ color: "#5a4a3a", lineHeight: 1.8, fontSize: "15px", marginBottom: "28px" }}>{description}</p>
 
-          <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: "19px", fontWeight: 700, marginBottom: "14px" }}>
-            Features & Amenities
-          </h2>
+          <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: "19px", fontWeight: 700, marginBottom: "14px" }}>Features & Amenities</h2>
           <div style={{ display: "flex", flexWrap: "wrap", gap: "10px" }}>
-            {features.map((f) => (
-              <span key={f} style={{
-                background: ACCENT_LIGHT, color: ACCENT,
-                padding: "6px 16px", borderRadius: "20px", fontSize: "13px", fontWeight: 500,
-              }}>
+            {(features || []).map((f) => (
+              <span key={f} style={{ background: ACCENT_LIGHT, color: ACCENT, padding: "6px 16px", borderRadius: "20px", fontSize: "13px", fontWeight: 500 }}>
                 ✓ {f}
               </span>
             ))}
           </div>
         </div>
 
-        {/* Enquiry form */}
-        <div style={{
-          background: "#fff", borderRadius: "16px", padding: "28px",
-          border: "1px solid #e8ddd3", boxShadow: "0 4px 20px rgba(122,92,46,0.08)",
-          position: "sticky", top: "80px",
-        }}>
-          <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: "18px", fontWeight: 700, marginBottom: "6px" }}>
-            Enquire about this plot
-          </h3>
-          <p style={{ fontSize: "13px", color: "#7a6655", marginBottom: "22px" }}>
-            Our team will call you within 24 hours.
-          </p>
+        {/* Enquiry */}
+        <div style={{ background: "#fff", borderRadius: "16px", padding: "28px", border: "1px solid #e8ddd3", boxShadow: "0 4px 20px rgba(122,92,46,0.08)", position: "sticky", top: "80px" }}>
+          <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: "18px", fontWeight: 700, marginBottom: "6px" }}>Enquire about this plot</h3>
+          <p style={{ fontSize: "13px", color: "#7a6655", marginBottom: "22px" }}>Our team will call you within 24 hours.</p>
 
           {submitted ? (
             <div style={{ textAlign: "center", padding: "24px 0" }}>
@@ -125,45 +93,20 @@ export default function PropertyDetail() {
             </div>
           ) : (
             <form onSubmit={(e) => { e.preventDefault(); setSubmitted(true); }} style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-              {[
-                { key: "name", placeholder: "Your name", type: "text" },
-                { key: "phone", placeholder: "Phone number", type: "tel" },
-              ].map((f) => (
-                <input
-                  key={f.key}
-                  type={f.type}
-                  placeholder={f.placeholder}
-                  required
-                  value={form[f.key]}
-                  onChange={set(f.key)}
-                  style={{
-                    padding: "11px 14px", border: "1px solid #ddd6ce", borderRadius: "8px",
-                    fontSize: "14px", outline: "none", background: "#faf7f3", color: "#2c1a0e",
-                  }}
+              {[{ key: "name", placeholder: "Your name", type: "text" }, { key: "phone", placeholder: "Phone number", type: "tel" }].map((f) => (
+                <input key={f.key} type={f.type} placeholder={f.placeholder} required value={form[f.key]} onChange={set(f.key)}
+                  style={{ padding: "11px 14px", border: "1px solid #ddd6ce", borderRadius: "8px", fontSize: "14px", outline: "none", background: "#faf7f3", color: "#2c1a0e" }}
                 />
               ))}
-              <textarea
-                placeholder={`I'm interested in ${title}...`}
-                rows={3}
-                value={form.message}
-                onChange={set("message")}
-                style={{
-                  padding: "11px 14px", border: "1px solid #ddd6ce", borderRadius: "8px",
-                  fontSize: "14px", resize: "vertical", outline: "none",
-                  background: "#faf7f3", color: "#2c1a0e", fontFamily: "inherit",
-                }}
+              <textarea placeholder={`I'm interested in ${title}...`} rows={3} value={form.message} onChange={set("message")}
+                style={{ padding: "11px 14px", border: "1px solid #ddd6ce", borderRadius: "8px", fontSize: "14px", resize: "vertical", outline: "none", background: "#faf7f3", color: "#2c1a0e", fontFamily: "inherit" }}
               />
-              <button type="submit" style={{
-                background: ACCENT, color: "#fff", padding: "13px",
-                borderRadius: "8px", border: "none", fontWeight: 700, fontSize: "15px", marginTop: "4px",
-              }}>
+              <button type="submit" style={{ background: ACCENT, color: "#fff", padding: "13px", borderRadius: "8px", border: "none", fontWeight: 700, fontSize: "15px", marginTop: "4px" }}>
                 Send Enquiry
               </button>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "6px", paddingTop: "4px" }}>
-                <a href="tel:+919000000000" style={{ fontSize: "13px", color: ACCENT, fontWeight: 500 }}>
-                  📞 +91 90000 00000
-                </a>
-              </div>
+              <a href="tel:+919000000000" style={{ fontSize: "13px", color: ACCENT, fontWeight: 500, textAlign: "center", paddingTop: "4px" }}>
+                📞 +91 90000 00000
+              </a>
             </form>
           )}
         </div>

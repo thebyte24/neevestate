@@ -1,29 +1,35 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
+import { collection, getDocs } from "firebase/firestore";
+import { db } from "../firebase";
 import PlotCard from "../components/PlotCard";
 
 const ACCENT = "#7a5c2e";
 
 export default function Listings() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const [plots, setPlots] = useState([]);
+  const [allPlots, setAllPlots] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const city = searchParams.get("city") || "";
   const category = searchParams.get("category") || "";
 
-  const fetchPlots = useCallback(() => {
+  // Load all once, filter client-side (fast for small datasets)
+  useEffect(() => {
     setLoading(true);
-    const params = new URLSearchParams();
-    if (city) params.set("city", city);
-    if (category) params.set("category", category);
+    getDocs(collection(db, "properties"))
+      .then((snap) => {
+        const data = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+        setAllPlots(data);
+        setLoading(false);
+      });
+  }, []);
 
-    fetch(`/api/properties?${params.toString()}`)
-      .then((r) => r.json())
-      .then((data) => { setPlots(data); setLoading(false); });
-  }, [searchParams.toString()]);
-
-  useEffect(() => { fetchPlots(); }, [fetchPlots]);
+  const plots = allPlots.filter((p) => {
+    const cityMatch = !city || p.city?.toLowerCase().includes(city.toLowerCase());
+    const catMatch = !category || p.category?.toLowerCase() === category.toLowerCase();
+    return cityMatch && catMatch;
+  });
 
   const setFilter = (key, value) => {
     const next = new URLSearchParams(searchParams);
@@ -41,9 +47,7 @@ export default function Listings() {
 
   return (
     <div style={{ maxWidth: "1400px", margin: "0 auto", padding: "40px 32px" }}>
-      <p style={{ fontSize: "12px", fontWeight: 600, letterSpacing: "2px", color: ACCENT, marginBottom: "6px" }}>
-        ALL PLOTS
-      </p>
+      <p style={{ fontSize: "12px", fontWeight: 600, letterSpacing: "2px", color: ACCENT, marginBottom: "6px" }}>ALL PLOTS</p>
       <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: "32px", fontWeight: 700, marginBottom: "28px" }}>
         Available Plots & Lands
       </h1>
@@ -56,7 +60,6 @@ export default function Listings() {
             {c}
           </button>
         ))}
-
         <div style={{ marginLeft: "auto" }}>
           <select
             value={city}
@@ -74,12 +77,10 @@ export default function Listings() {
         </div>
       </div>
 
-      {/* Count */}
       <p style={{ fontSize: "14px", color: "#7a6655", marginBottom: "24px" }}>
         {loading ? "Loading..." : `${plots.length} plot${plots.length !== 1 ? "s" : ""} found`}
       </p>
 
-      {/* Grid */}
       {loading ? (
         <div style={{ textAlign: "center", padding: "80px", color: "#7a6655" }}>Loading plots...</div>
       ) : plots.length === 0 ? (

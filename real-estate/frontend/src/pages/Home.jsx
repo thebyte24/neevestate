@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { collection, getDocs, doc, getDoc } from "firebase/firestore";
+import { db } from "../firebase";
 import PlotCard from "../components/PlotCard";
 
 const ACCENT = "#7a5c2e";
@@ -8,11 +10,10 @@ const DEFAULT_HERO = {
   badge: "OPEN PLOTS • FARM LANDS • ANDHRA PRADESH",
   headline: "Own a piece of\nAndhra's growth\nstory.",
   subtext:
-    "Neev Estate brings you DTCP-approved open plots and farm lands across Amaravati, Vijayawada, Guntur, Visakhapatnam and Tirupati — with clear titles and transparent pricing.",
+    "Neev Estate brings you DTCP-approved open plots and farm lands across Nellore, Vijayawada, Guntur, Visakhapatnam and Tirupati — with clear titles and transparent pricing.",
   cta1: "View available plots",
   cta2: "Book a site visit",
-  imageUrl:
-    "https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=1400&q=80",
+  imageUrl: "https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=1400&q=80",
 };
 
 export default function Home() {
@@ -20,31 +21,30 @@ export default function Home() {
   const [hero, setHero] = useState(DEFAULT_HERO);
 
   useEffect(() => {
-    fetch("/api/properties")
-      .then((r) => r.json())
-      .then((data) => setPlots(data.slice(0, 4)));
-
-    fetch("/api/hero")
-      .then((r) => r.json())
-      .then((data) => setHero(data))
+    // Load hero
+    getDoc(doc(db, "config", "hero"))
+      .then((snap) => { if (snap.exists()) setHero(snap.data()); })
       .catch(() => {});
+
+    // Load featured plots (first 4)
+    getDocs(collection(db, "properties"))
+      .then((snap) => {
+        const data = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+        setPlots(data.slice(0, 4));
+      });
   }, []);
 
   return (
     <div>
       {/* ── Hero ── */}
       <section style={{
-        position: "relative",
-        minHeight: "88vh",
-        display: "flex",
-        alignItems: "flex-end",
-        overflow: "hidden",
+        position: "relative", minHeight: "88vh",
+        display: "flex", alignItems: "flex-end", overflow: "hidden",
       }}>
         <div style={{
           position: "absolute", inset: 0,
           backgroundImage: `url(${hero.imageUrl})`,
-          backgroundSize: "cover",
-          backgroundPosition: "center",
+          backgroundSize: "cover", backgroundPosition: "center",
           filter: "brightness(0.55)",
         }} />
         <div style={{
@@ -57,12 +57,8 @@ export default function Home() {
           </p>
           <h1 style={{
             fontFamily: "'Playfair Display', serif",
-            fontSize: "clamp(36px, 5vw, 62px)",
-            fontWeight: 800,
-            color: "#fff",
-            lineHeight: 1.15,
-            marginBottom: "20px",
-            whiteSpace: "pre-line",
+            fontSize: "clamp(36px, 5vw, 62px)", fontWeight: 800,
+            color: "#fff", lineHeight: 1.15, marginBottom: "20px", whiteSpace: "pre-line",
           }}>
             {hero.headline}
           </h1>
@@ -105,7 +101,6 @@ export default function Home() {
             View all plots →
           </Link>
         </div>
-
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(380px, 1fr))", gap: "28px" }}>
           {plots.map((p) => <PlotCard key={p.id} property={p} />)}
         </div>
@@ -115,9 +110,7 @@ export default function Home() {
       <section id="about" style={{ padding: "80px 32px" }}>
         <div style={{ maxWidth: "1400px", margin: "0 auto", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "60px", alignItems: "center" }}>
           <div>
-            <p style={{ fontSize: "12px", fontWeight: 600, letterSpacing: "2px", color: ACCENT, marginBottom: "12px" }}>
-              ABOUT NEEV ESTATE
-            </p>
+            <p style={{ fontSize: "12px", fontWeight: 600, letterSpacing: "2px", color: ACCENT, marginBottom: "12px" }}>ABOUT NEEV ESTATE</p>
             <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: "clamp(24px, 3vw, 38px)", fontWeight: 700, lineHeight: 1.25, marginBottom: "20px" }}>
               Rooted in Andhra,<br />built on trust
             </h2>
@@ -128,11 +121,7 @@ export default function Home() {
               We handle land sourcing, layout development, DTCP approvals, and end-to-end registration so you can invest with complete confidence.
             </p>
             <div style={{ display: "flex", gap: "36px", paddingTop: "24px", borderTop: "1px solid #e8ddd3" }}>
-              {[
-                { value: "10+", label: "Layouts in AP" },
-                { value: "1,200+", label: "Plots sold" },
-                { value: "100%", label: "Clear titles" },
-              ].map((s) => (
+              {[{ value: "10+", label: "Layouts in AP" }, { value: "1,200+", label: "Plots sold" }, { value: "100%", label: "Clear titles" }].map((s) => (
                 <div key={s.label}>
                   <p style={{ fontFamily: "'Playfair Display', serif", fontSize: "28px", fontWeight: 700, color: ACCENT }}>{s.value}</p>
                   <p style={{ fontSize: "13px", color: "#7a6655", marginTop: "2px" }}>{s.label}</p>
@@ -141,11 +130,7 @@ export default function Home() {
             </div>
           </div>
           <div style={{ borderRadius: "16px", overflow: "hidden", height: "380px" }}>
-            <img
-              src="https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=800&q=80"
-              alt="Andhra Pradesh land"
-              style={{ width: "100%", height: "100%", objectFit: "cover" }}
-            />
+            <img src="https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=800&q=80" alt="Andhra Pradesh land" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
           </div>
         </div>
       </section>
@@ -153,29 +138,16 @@ export default function Home() {
       {/* ── Testimonials ── */}
       <section style={{ background: "#eee8e0", padding: "72px 32px" }}>
         <div style={{ maxWidth: "1400px", margin: "0 auto" }}>
-          <p style={{ fontSize: "12px", fontWeight: 600, letterSpacing: "2px", color: ACCENT, textAlign: "center", marginBottom: "10px" }}>
-            CLIENT STORIES
-          </p>
+          <p style={{ fontSize: "12px", fontWeight: 600, letterSpacing: "2px", color: ACCENT, textAlign: "center", marginBottom: "10px" }}>CLIENT STORIES</p>
           <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: "clamp(24px, 3vw, 36px)", fontWeight: 700, textAlign: "center", marginBottom: "40px" }}>
             What our buyers say
           </h2>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: "20px" }}>
             {[
-              {
-                quote: '"Booked two plots in Neev Greens near Amaravati. Clear title, gated layout, and the registration was seamless."',
-                name: "Ravi Teja",
-                role: "Investor, Vijayawada",
-              },
-              {
-                quote: '"Neev Estate helped my family buy farm land near Tirupati. Honest pricing and great post-sale support."',
-                name: "Lakshmi Prasanna",
-                role: "Buyer, Tirupati",
-              },
+              { quote: '"Booked two plots in Neev Greens near Amaravati. Clear title, gated layout, and the registration was seamless."', name: "Ravi Teja", role: "Investor, Vijayawada" },
+              { quote: '"Neev Estate helped my family buy farm land near Tirupati. Honest pricing and great post-sale support."', name: "Lakshmi Prasanna", role: "Buyer, Tirupati" },
             ].map((t) => (
-              <div key={t.name} style={{
-                background: "#fff", padding: "28px 30px", borderRadius: "12px",
-                border: "1px solid #e2d8ce",
-              }}>
+              <div key={t.name} style={{ background: "#fff", padding: "28px 30px", borderRadius: "12px", border: "1px solid #e2d8ce" }}>
                 <p style={{ fontSize: "15px", color: "#4a3728", lineHeight: 1.75, marginBottom: "20px" }}>{t.quote}</p>
                 <div style={{ borderTop: "1px solid #f0e8df", paddingTop: "16px" }}>
                   <p style={{ fontWeight: 600, fontSize: "14px", color: "#2c1a0e" }}>{t.name}</p>
@@ -200,7 +172,6 @@ export default function Home() {
             background: "rgba(255,255,255,0.15)", color: "#fff",
             border: "1.5px solid rgba(255,255,255,0.5)",
             padding: "13px 28px", borderRadius: "8px", fontWeight: 500, fontSize: "15px",
-            display: "flex", alignItems: "center", gap: "8px",
           }}>
             📞 +91 90000 00000
           </a>
@@ -208,7 +179,6 @@ export default function Home() {
             background: "rgba(255,255,255,0.15)", color: "#fff",
             border: "1.5px solid rgba(255,255,255,0.5)",
             padding: "13px 28px", borderRadius: "8px", fontWeight: 500, fontSize: "15px",
-            display: "flex", alignItems: "center", gap: "8px",
           }}>
             ✉️ hello@neevestate.in
           </a>
