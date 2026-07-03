@@ -6,34 +6,18 @@ import {
 import { db } from "../firebase";
 import { seedData } from "../seed";
 
-const CLOUDINARY_CLOUD = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
-const CLOUDINARY_PRESET = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
+const CLOUDINARY_CLOUD = "dzhctf6ew";
+const CLOUDINARY_PRESET = "neevestate_uploads";
 
 async function uploadToCloudinary(file, onProgress) {
-  // Fallback to hardcoded values in case env vars aren't loaded
-  const cloudName = CLOUDINARY_CLOUD || "dzhctf6ew";
-  const uploadPreset = CLOUDINARY_PRESET || "neevestate_uploads";
-
   const formData = new FormData();
   formData.append("file", file);
-  formData.append("upload_preset", uploadPreset);
+  formData.append("upload_preset", CLOUDINARY_PRESET);
   formData.append("folder", "neevestate");
 
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
-    xhr.open("POST", `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`);
-    xhr.upload.onprogress = (e) => {
-      if (e.lengthComputable) onProgress(Math.round((e.loaded / e.total) * 100));
-    };
-    xhr.onload = () => {
-      const res = JSON.parse(xhr.responseText);
-      if (xhr.status === 200) resolve(res.secure_url);
-      else reject(new Error(res.error?.message || "Upload failed"));
-    };
-    xhr.onerror = () => reject(new Error("Upload failed"));
-    xhr.send(formData);
-  });
-}
+    xhr.open("POST", `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/image/upload`);
     xhr.upload.onprogress = (e) => {
       if (e.lengthComputable) onProgress(Math.round((e.loaded / e.total) * 100));
     };
@@ -335,7 +319,7 @@ function ImageUploader({ currentUrl, onUpload, previewHeight = "140px" }) {
       <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
         <input
           type="url"
-          placeholder="https://... or upload an image"
+          placeholder="Paste image URL or upload a file"
           value={currentUrl || ""}
           onChange={(e) => onUpload(e.target.value)}
           style={{ ...inputStyle, flex: 1 }}
@@ -351,7 +335,7 @@ function ImageUploader({ currentUrl, onUpload, previewHeight = "140px" }) {
           <div style={{ height: "4px", background: "#e8ddd3", borderRadius: "2px" }}>
             <div style={{ height: "100%", width: `${progress}%`, background: ACCENT, borderRadius: "2px", transition: "width 0.2s" }} />
           </div>
-          <p style={{ fontSize: "12px", color: "#7a6655", marginTop: "4px" }}>Uploading to Cloudinary... {progress}%</p>
+          <p style={{ fontSize: "12px", color: "#7a6655", marginTop: "4px" }}>Uploading... {progress}%</p>
         </div>
       )}
       {error && <p style={{ fontSize: "12px", color: "#b91c1c", marginTop: "4px" }}>{error}</p>}
