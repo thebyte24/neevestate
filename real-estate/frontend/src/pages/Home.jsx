@@ -160,28 +160,43 @@ export default function Home() {
       </section>
 
       {/* ── CTA / Contact ── */}
-      <section id="contact" style={{ background: ACCENT, padding: "64px 32px", borderRadius: "12px", margin: "48px 32px", textAlign: "center" }}>
-        <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: "clamp(24px, 3vw, 38px)", fontWeight: 700, color: "#fff", marginBottom: "12px" }}>
-          Ready to own land in Andhra Pradesh?
-        </h2>
-        <p style={{ color: "rgba(255,255,255,0.8)", fontSize: "16px", marginBottom: "36px" }}>
-          Talk to our team for current availability, pricing, and a free site visit.
-        </p>
-        <div style={{ display: "flex", justifyContent: "center", gap: "16px", flexWrap: "wrap" }}>
-          <a href="tel:+919000000000" style={{
-            background: "rgba(255,255,255,0.15)", color: "#fff",
-            border: "1.5px solid rgba(255,255,255,0.5)",
-            padding: "13px 28px", borderRadius: "8px", fontWeight: 500, fontSize: "15px",
-          }}>
-            📞 +91 90000 00000
-          </a>
-          <a href="mailto:hello@neevestate.in" style={{
-            background: "rgba(255,255,255,0.15)", color: "#fff",
-            border: "1.5px solid rgba(255,255,255,0.5)",
-            padding: "13px 28px", borderRadius: "8px", fontWeight: 500, fontSize: "15px",
-          }}>
-            ✉️ hello@neevestate.in
-          </a>
+      <section id="contact" style={{ background: ACCENT, padding: "64px 32px", borderRadius: "12px", margin: "48px 32px" }}>
+        <div style={{ maxWidth: "900px", margin: "0 auto" }}>
+          <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: "clamp(24px, 3vw, 38px)", fontWeight: 700, color: "#fff", marginBottom: "12px", textAlign: "center" }}>
+            Ready to own land in Andhra Pradesh?
+          </h2>
+          <p style={{ color: "rgba(255,255,255,0.8)", fontSize: "16px", marginBottom: "44px", textAlign: "center" }}>
+            Talk to our team for current availability, pricing, and a free site visit.
+          </p>
+
+          {/* Contact cards */}
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "16px", marginBottom: "32px" }}>
+            {/* Name */}
+            <div style={{ background: "rgba(255,255,255,0.12)", borderRadius: "12px", padding: "20px 22px", border: "1px solid rgba(255,255,255,0.2)" }}>
+              <p style={{ fontSize: "11px", fontWeight: 600, letterSpacing: "1px", color: "rgba(255,255,255,0.6)", marginBottom: "6px", textTransform: "uppercase" }}>Contact Person</p>
+              <p style={{ color: "#fff", fontWeight: 700, fontSize: "17px" }}>N. Sreedhar</p>
+            </div>
+            {/* Phone */}
+            <div style={{ background: "rgba(255,255,255,0.12)", borderRadius: "12px", padding: "20px 22px", border: "1px solid rgba(255,255,255,0.2)" }}>
+              <p style={{ fontSize: "11px", fontWeight: 600, letterSpacing: "1px", color: "rgba(255,255,255,0.6)", marginBottom: "6px", textTransform: "uppercase" }}>Mobile</p>
+              <a href="tel:+919347102038" style={{ color: "#fff", fontWeight: 700, fontSize: "17px", display: "block" }}>+91 93471 02038</a>
+              <a href="tel:08614057247" style={{ color: "rgba(255,255,255,0.8)", fontSize: "14px", marginTop: "4px", display: "block" }}>0861-4057247</a>
+            </div>
+            {/* Email */}
+            <div style={{ background: "rgba(255,255,255,0.12)", borderRadius: "12px", padding: "20px 22px", border: "1px solid rgba(255,255,255,0.2)" }}>
+              <p style={{ fontSize: "11px", fontWeight: 600, letterSpacing: "1px", color: "rgba(255,255,255,0.6)", marginBottom: "6px", textTransform: "uppercase" }}>Email</p>
+              <a href="mailto:sreedharn7@gmail.com" style={{ color: "#fff", fontWeight: 600, fontSize: "15px", wordBreak: "break-all" }}>sreedharn7@gmail.com</a>
+            </div>
+            {/* Address */}
+            <div style={{ background: "rgba(255,255,255,0.12)", borderRadius: "12px", padding: "20px 22px", border: "1px solid rgba(255,255,255,0.2)" }}>
+              <p style={{ fontSize: "11px", fontWeight: 600, letterSpacing: "1px", color: "rgba(255,255,255,0.6)", marginBottom: "6px", textTransform: "uppercase" }}>Address</p>
+              <p style={{ color: "#fff", fontSize: "14px", lineHeight: 1.6 }}>Haranathpuram 1st Line,<br />Opp Manasa Hotel,<br />Nellore – 524 003</p>
+            </div>
+          </div>
+
+          <p style={{ textAlign: "center", color: "rgba(255,255,255,0.6)", fontSize: "14px" }}>
+            🌐 <a href="http://www.neevestate.com" target="_blank" rel="noreferrer" style={{ color: "rgba(255,255,255,0.8)" }}>www.neevestate.com</a>
+          </p>
         </div>
       </section>
     </div>
