@@ -46,9 +46,13 @@ export default function Listings() {
   });
 
   return (
-    <div style={{ maxWidth: "1400px", margin: "0 auto", padding: "40px 32px" }}>
+    <div style={{ maxWidth: "1400px", margin: "0 auto", padding: "36px 20px" }}>
+      <style>{`
+        .listings-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 28px; }
+        @media (max-width: 768px) { .listings-grid { grid-template-columns: 1fr !important; } }
+      `}</style>
       <p style={{ fontSize: "12px", fontWeight: 600, letterSpacing: "2px", color: ACCENT, marginBottom: "6px" }}>ALL PLOTS</p>
-      <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: "32px", fontWeight: 700, marginBottom: "28px" }}>
+      <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: "clamp(24px, 4vw, 32px)", fontWeight: 700, marginBottom: "28px" }}>
         Available Plots & Lands
       </h1>
 
@@ -70,7 +74,7 @@ export default function Listings() {
             }}
           >
             <option value="">All cities</option>
-            {["Guntur", "Vijayawada", "Visakhapatnam", "Tirupati", "Eluru"].map((c) => (
+            {["Guntur", "Vijayawada", "Visakhapatnam", "Tirupati", "Eluru", "Nellore"].map((c) => (
               <option key={c} value={c}>{c}</option>
             ))}
           </select>
@@ -89,7 +93,7 @@ export default function Listings() {
           <p>No plots found for your selection. Try changing the filters.</p>
         </div>
       ) : (
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(380px, 1fr))", gap: "28px" }}>
+        <div className="listings-grid">
           {plots.map((p) => <PlotCard key={p.id} property={p} />)}
         </div>
       )}

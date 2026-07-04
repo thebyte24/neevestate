@@ -6,8 +6,14 @@ export default function Footer() {
   return (
     <footer style={{ background: "#faf7f3", borderTop: "1px solid #e8ddd3" }}>
       {/* Main footer */}
-      <div style={{ maxWidth: "1400px", margin: "0 auto", padding: "52px 32px 40px" }}>
-        <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr", gap: "48px", flexWrap: "wrap" }}>
+      <div style={{ maxWidth: "1400px", margin: "0 auto", padding: "52px 20px 40px" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr", gap: "48px" }}
+          className="footer-grid">
+          <style>{`
+            .footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 48px; }
+            @media (max-width: 768px) { .footer-grid { grid-template-columns: 1fr 1fr !important; gap: 32px !important; } }
+            @media (max-width: 480px) { .footer-grid { grid-template-columns: 1fr !important; } }
+          `}</style>
           {/* Brand */}
           <div>
             <div style={{ display: "flex", alignItems: "baseline", gap: "1px", marginBottom: "14px" }}>

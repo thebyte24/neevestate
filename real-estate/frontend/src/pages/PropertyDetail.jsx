@@ -24,6 +24,13 @@ export default function PropertyDetail() {
 
   const set = (k) => (e) => setForm((p) => ({ ...p, [k]: e.target.value }));
 
+  const handleEnquiry = (e) => {
+    e.preventDefault();
+    const msg = `Hi, I'm ${form.name}. I'm interested in "${title}". ${form.message || ""} My phone: ${form.phone}`;
+    window.open(`https://wa.me/919347102038?text=${encodeURIComponent(msg)}`, "_blank");
+    setSubmitted(true);
+  };
+
   if (loading) return <div style={{ textAlign: "center", padding: "80px", color: "#7a6655" }}>Loading...</div>;
   if (!plot) return (
     <div style={{ textAlign: "center", padding: "80px" }}>
@@ -35,16 +42,25 @@ export default function PropertyDetail() {
   const { title, price, priceUnit, badge, sizeRange, facing, location, image, description, features, approvals, category } = plot;
 
   return (
-    <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "36px 32px" }}>
+    <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "28px 16px" }}>
+      <style>{`
+        .detail-grid { display: grid; grid-template-columns: 1fr 340px; gap: 40px; align-items: start; }
+        .detail-img { border-radius: 16px; overflow: hidden; height: 440px; margin-bottom: 36px; }
+        @media (max-width: 900px) {
+          .detail-grid { grid-template-columns: 1fr !important; }
+          .detail-img { height: 240px !important; }
+          .enquiry-card { position: static !important; }
+        }
+      `}</style>
       <Link to="/plots" style={{ color: ACCENT, fontWeight: 500, fontSize: "14px", display: "inline-block", marginBottom: "24px" }}>
         ← Back to plots
       </Link>
 
-      <div style={{ borderRadius: "16px", overflow: "hidden", height: "440px", marginBottom: "36px" }}>
+      <div className="detail-img">
         <img src={image} alt={title} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 340px", gap: "40px", alignItems: "start" }}>
+      <div className="detail-grid">
         {/* Left */}
         <div>
           <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", marginBottom: "14px" }}>
@@ -81,18 +97,18 @@ export default function PropertyDetail() {
         </div>
 
         {/* Enquiry */}
-        <div style={{ background: "#fff", borderRadius: "16px", padding: "28px", border: "1px solid #e8ddd3", boxShadow: "0 4px 20px rgba(122,92,46,0.08)", position: "sticky", top: "80px" }}>
+        <div className="enquiry-card" style={{ background: "#fff", borderRadius: "16px", padding: "28px", border: "1px solid #e8ddd3", boxShadow: "0 4px 20px rgba(122,92,46,0.08)", position: "sticky", top: "80px" }}>
           <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: "18px", fontWeight: 700, marginBottom: "6px" }}>Enquire about this plot</h3>
-          <p style={{ fontSize: "13px", color: "#7a6655", marginBottom: "22px" }}>Our team will call you within 24 hours.</p>
+          <p style={{ fontSize: "13px", color: "#7a6655", marginBottom: "22px" }}>Fill your details to chat on WhatsApp.</p>
 
           {submitted ? (
             <div style={{ textAlign: "center", padding: "24px 0" }}>
               <div style={{ fontSize: "44px", marginBottom: "12px" }}>✅</div>
-              <p style={{ fontWeight: 600, marginBottom: "6px" }}>Enquiry Received!</p>
-              <p style={{ color: "#7a6655", fontSize: "14px" }}>We'll contact you shortly about {title}.</p>
+              <p style={{ fontWeight: 600, marginBottom: "6px" }}>Redirected to WhatsApp!</p>
+              <p style={{ color: "#7a6655", fontSize: "14px" }}>Continue your chat about {title}.</p>
             </div>
           ) : (
-            <form onSubmit={(e) => { e.preventDefault(); setSubmitted(true); }} style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+            <form onSubmit={handleEnquiry} style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
               {[{ key: "name", placeholder: "Your name", type: "text" }, { key: "phone", placeholder: "Phone number", type: "tel" }].map((f) => (
                 <input key={f.key} type={f.type} placeholder={f.placeholder} required value={form[f.key]} onChange={set(f.key)}
                   style={{ padding: "11px 14px", border: "1px solid #ddd6ce", borderRadius: "8px", fontSize: "14px", outline: "none", background: "#faf7f3", color: "#2c1a0e" }}
@@ -101,11 +117,12 @@ export default function PropertyDetail() {
               <textarea placeholder={`I'm interested in ${title}...`} rows={3} value={form.message} onChange={set("message")}
                 style={{ padding: "11px 14px", border: "1px solid #ddd6ce", borderRadius: "8px", fontSize: "14px", resize: "vertical", outline: "none", background: "#faf7f3", color: "#2c1a0e", fontFamily: "inherit" }}
               />
-              <button type="submit" style={{ background: ACCENT, color: "#fff", padding: "13px", borderRadius: "8px", border: "none", fontWeight: 700, fontSize: "15px", marginTop: "4px" }}>
-                Send Enquiry
+              <button type="submit" style={{ background: "#25d366", color: "#fff", padding: "13px", borderRadius: "8px", border: "none", fontWeight: 700, fontSize: "15px", marginTop: "4px", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" }}>
+                <svg width="18" height="18" viewBox="0 0 32 32" fill="currentColor"><path d="M16 3C9.373 3 4 8.373 4 15c0 2.385.668 4.61 1.832 6.505L4 29l7.697-1.812A12.94 12.94 0 0 0 16 28c6.627 0 12-5.373 12-12S22.627 3 16 3zm-3.293 5.5c-.2 0-.524.075-.8.375-.276.3-1.05 1.025-1.05 2.5s1.075 2.9 1.225 3.1c.15.2 2.1 3.225 5.125 4.4.715.275 1.275.44 1.71.565.718.2 1.373.173 1.89.105.576-.075 1.775-.726 2.025-1.426.25-.7.25-1.3.175-1.425-.075-.125-.275-.2-.575-.35-.3-.15-1.775-.876-2.05-.975-.275-.1-.475-.15-.675.15-.2.3-.776.975-.95 1.175-.175.2-.35.225-.65.075-.3-.15-1.266-.467-2.41-1.487-.89-.794-1.492-1.774-1.667-2.074-.175-.3-.019-.463.131-.612.135-.135.3-.35.45-.525.15-.175.2-.3.3-.5.1-.2.05-.375-.025-.525-.075-.15-.675-1.626-.925-2.225-.243-.583-.49-.504-.675-.513l-.575-.01z" /></svg>
+                Send via WhatsApp
               </button>
-              <a href="tel:+919000000000" style={{ fontSize: "13px", color: ACCENT, fontWeight: 500, textAlign: "center", paddingTop: "4px" }}>
-                📞 +91 90000 00000
+              <a href="tel:+919347102038" style={{ fontSize: "13px", color: ACCENT, fontWeight: 500, textAlign: "center", paddingTop: "4px" }}>
+                📞 +91 93471 02038
               </a>
             </form>
           )}

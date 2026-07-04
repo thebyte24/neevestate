@@ -23,10 +23,11 @@ async function uploadToCloudinary(file, onProgress) {
     };
     xhr.onload = () => {
       const res = JSON.parse(xhr.responseText);
+      console.log("Cloudinary response:", xhr.status, res);
       if (xhr.status === 200) resolve(res.secure_url);
-      else reject(new Error(res.error?.message || "Upload failed"));
+      else reject(new Error(res.error?.message || `HTTP ${xhr.status}: Upload failed`));
     };
-    xhr.onerror = () => reject(new Error("Upload failed"));
+    xhr.onerror = () => reject(new Error("Network error — check console"));
     xhr.send(formData);
   });
 }
@@ -307,7 +308,7 @@ function ImageUploader({ currentUrl, onUpload, previewHeight = "140px" }) {
       const url = await uploadToCloudinary(file, setProgress);
       onUpload(url);
     } catch (err) {
-      setError("Upload failed. Try again.");
+      setError(err.message || "Upload failed. Try again.");
     } finally {
       setUploading(false);
       setProgress(0);
@@ -363,7 +364,7 @@ function PlotForm({ plot, onChange }) {
       <div>
         <label style={labelStyle}>Badge</label>
         <select style={inputStyle} value={plot.badge} onChange={set("badge")}>
-          {["DTCP Approved", "RERA Registered", "Gated Community", "Farm Land"].map((b) => <option key={b}>{b}</option>)}
+          {["DTCP Approved", "RERA Registered", "NUDA Approved", "Gated Community", "Farm Land"].map((b) => <option key={b}>{b}</option>)}
         </select>
       </div>
       <div>
