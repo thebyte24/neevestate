@@ -1,3 +1,5 @@
+import { Link } from "react-router-dom";
+
 const ACCENT = "#7a5c2e";
 
 export default function Footer() {
@@ -23,11 +25,15 @@ export default function Footer() {
               Explore
             </p>
             <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-              {["Plots", "Services", "About", "Contact"].map((label) => (
-                <a key={label} href={label === "Plots" ? "/plots" : `#${label.toLowerCase()}`}
-                  style={{ fontSize: "14px", color: "#7a6655" }}>
+              {[
+                { label: "Plots", to: "/plots" },
+                { label: "Services", to: "/services" },
+                { label: "About", to: "/about" },
+                { label: "Contact", to: "/#contact" },
+              ].map(({ label, to }) => (
+                <Link key={label} to={to} style={{ fontSize: "14px", color: "#7a6655" }}>
                   {label}
-                </a>
+                </Link>
               ))}
             </div>
           </div>

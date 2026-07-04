@@ -53,9 +53,9 @@ export default function Navbar() {
         {/* Links */}
         <div style={{ display: "flex", gap: "28px", alignItems: "center" }}>
           {navLink("Plots", "/plots")}
-          <a href="#services" style={{ fontSize: "14px", fontWeight: 500, color: "#4a3728" }}>Services</a>
-          <a href="#about" style={{ fontSize: "14px", fontWeight: 500, color: "#4a3728" }}>About</a>
-          <a href="#contact" style={{ fontSize: "14px", fontWeight: 500, color: "#4a3728" }}>Contact</a>
+          {navLink("Services", "/services")}
+          {navLink("About", "/about")}
+          <a href="/#contact" style={{ fontSize: "14px", fontWeight: 500, color: "#4a3728" }}>Contact</a>
         </div>
 
         {/* CTA */}
