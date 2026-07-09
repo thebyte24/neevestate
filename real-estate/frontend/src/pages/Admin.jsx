@@ -58,7 +58,7 @@ const btnDanger = {
 };
 
 const BLANK_PLOT = {
-  title: "", price: "", priceUnit: "sq.yd", badge: "DTCP Approved",
+  title: "", price: "", priceUnit: "Ankanam", badge: "DTCP Approved",
   type: "Open Plot", sizeRange: "", facing: "", location: "",
   city: "", image: "", description: "", features: "", approvals: "DTCP", category: "Open Plot",
 };
@@ -107,6 +107,10 @@ export default function Admin() {
     const body = {
       ...editingPlot,
       price: parseInt(editingPlot.price),
+      priceUnit: "Ankanam",
+      sizeRange: editingPlot.sizeRange && !editingPlot.sizeRange.toLowerCase().includes("ankanam")
+        ? `${editingPlot.sizeRange} Ankanam's`
+        : editingPlot.sizeRange,
       features: typeof editingPlot.features === "string"
         ? editingPlot.features.split(",").map((f) => f.trim()).filter(Boolean)
         : editingPlot.features,
@@ -358,7 +362,7 @@ function PlotForm({ plot, onChange }) {
         <input style={inputStyle} value={plot.title} onChange={set("title")} placeholder="Neev Greens Phase I" />
       </div>
       <div>
-        <label style={labelStyle}>Price (₹ per sq.yd)</label>
+        <label style={labelStyle}>Price (₹ per Ankanam)</label>
         <input style={inputStyle} type="number" value={plot.price} onChange={set("price")} placeholder="24999" />
       </div>
       <div>
@@ -374,8 +378,8 @@ function PlotForm({ plot, onChange }) {
         </select>
       </div>
       <div>
-        <label style={labelStyle}>Size Range</label>
-        <input style={inputStyle} value={plot.sizeRange} onChange={set("sizeRange")} placeholder="200 – 500 sq.yd" />
+        <label style={labelStyle}>Size Range (Ankanam's)</label>
+        <input style={inputStyle} value={plot.sizeRange} onChange={set("sizeRange")} placeholder="200 – 500 Ankanam's" />
       </div>
       <div>
         <label style={labelStyle}>Facing</label>
