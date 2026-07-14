@@ -15,16 +15,19 @@ async function uploadToCloudinary(file, onProgress) {
   formData.append("upload_preset", CLOUDINARY_PRESET);
   formData.append("folder", "neevestate");
 
+  const isVideo = file.type.startsWith("video/");
+  const endpoint = isVideo ? "video" : "image";
+
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
-    xhr.open("POST", `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/image/upload`);
+    xhr.open("POST", `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/${endpoint}/upload`);
     xhr.upload.onprogress = (e) => {
       if (e.lengthComputable) onProgress(Math.round((e.loaded / e.total) * 100));
     };
     xhr.onload = () => {
       const res = JSON.parse(xhr.responseText);
       console.log("Cloudinary response:", xhr.status, res);
-      if (xhr.status === 200) resolve(res.secure_url);
+      if (xhr.status === 200) resolve({ url: res.secure_url, type: isVideo ? "video" : "image" });
       else reject(new Error(res.error?.message || `HTTP ${xhr.status}: Upload failed`));
     };
     xhr.onerror = () => reject(new Error("Network error — check console"));
@@ -98,14 +101,23 @@ export default function Admin() {
 
   const saveHero = async () => {
     setHeroSaving(true);
-    await setDoc(doc(db, "config", "hero"), hero);
+    // normalise images to objects
+    const normHero = {
+      ...hero,
+      images: (hero.images || []).map(v => typeof v === "string" ? { url: v, type: "image" } : v),
+    };
+    normHero.imageUrl = (normHero.images.find(m => m.type === "image") || normHero.images[0] || {}).url || "";
+    await setDoc(doc(db, "config", "hero"), normHero);
     setHeroSaving(false);
     setHeroMsg("Saved successfully!");
     setTimeout(() => setHeroMsg(""), 3000);
   };
 
   const savePlot = async () => {
-    const imgs = Array.isArray(editingPlot.images) ? editingPlot.images.filter(Boolean) : [];
+    const rawImgs = Array.isArray(editingPlot.images) ? editingPlot.images.filter(Boolean) : [];
+    // normalise to objects
+    const imgs = rawImgs.map(v => typeof v === "string" ? { url: v, type: "image" } : v);
+    const firstImageUrl = (imgs.find(m => m.type === "image") || imgs[0] || {}).url || "";
     const body = {
       ...editingPlot,
       price: parseInt(editingPlot.price),
@@ -117,8 +129,7 @@ export default function Admin() {
         ? editingPlot.features.split(",").map((f) => f.trim()).filter(Boolean)
         : editingPlot.features,
       images: imgs,
-      // keep legacy `image` as first image for backwards compat
-      image: imgs[0] || editingPlot.image || "",
+      image: firstImageUrl,
     };
     delete body.id;
 
@@ -374,113 +385,108 @@ function ImageUploader({ currentUrl, onUpload, previewHeight = "140px" }) {
   );
 }
 
-// ── Multi-Image Uploader ──
-function MultiImageUploader({ images = [], onChange }) {
+// ── Multi-Media Uploader (images + videos) ──
+// Items are stored as { url, type: 'image'|'video' } objects.
+// Legacy plain-string URLs are treated as images on read.
+function toMediaItem(v) {
+  if (typeof v === "string") return { url: v, type: "image" };
+  return v;
+}
+
+function MultiMediaUploader({ images = [], onChange }) {
+  // normalise legacy string array to objects
+  const items = images.map(toMediaItem);
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState("");
   const [urlInput, setUrlInput] = useState("");
-  const [confirmImgDelete, setConfirmImgDelete] = useState(null); // index
+  const [confirmDelete, setConfirmDelete] = useState(null);
   const fileRef = useRef();
+
+  const emit = (arr) => onChange(arr); // always store as objects
 
   const addUrl = () => {
     const trimmed = urlInput.trim();
     if (!trimmed) return;
-    onChange([...images, trimmed]);
+    const isVid = /\.(mp4|mov|webm|ogg)(\?|$)/i.test(trimmed);
+    emit([...items, { url: trimmed, type: isVid ? "video" : "image" }]);
     setUrlInput("");
   };
 
   const handleFiles = async (e) => {
     const files = Array.from(e.target.files);
     if (!files.length) return;
-    setUploading(true);
-    setError("");
+    setUploading(true); setError("");
     try {
-      const urls = [];
+      const newItems = [];
       for (let i = 0; i < files.length; i++) {
-        const url = await uploadToCloudinary(files[i], (p) =>
+        const result = await uploadToCloudinary(files[i], (p) =>
           setProgress(Math.round(((i + p / 100) / files.length) * 100))
         );
-        urls.push(url);
+        newItems.push(result);
       }
-      onChange([...images, ...urls]);
+      emit([...items, ...newItems]);
     } catch (err) {
-      setError(err.message || "Upload failed. Try again.");
+      setError(err.message || "Upload failed.");
     } finally {
-      setUploading(false);
-      setProgress(0);
-      e.target.value = "";
+      setUploading(false); setProgress(0); e.target.value = "";
     }
   };
 
-  const remove = (idx) => onChange(images.filter((_, i) => i !== idx));
+  const remove = (idx) => emit(items.filter((_, i) => i !== idx));
   const moveUp = (idx) => {
     if (idx === 0) return;
-    const arr = [...images];
+    const arr = [...items];
     [arr[idx - 1], arr[idx]] = [arr[idx], arr[idx - 1]];
-    onChange(arr);
+    emit(arr);
   };
 
   return (
     <div>
       {/* Thumbnail grid */}
-      {images.length > 0 && (
+      {items.length > 0 && (
         <div style={{ display: "flex", flexWrap: "wrap", gap: "10px", marginBottom: "14px" }}>
-          {images.map((url, i) => (
+          {items.map((item, i) => (
             <div key={i} style={{ position: "relative", width: "130px", borderRadius: "8px", overflow: "hidden", border: i === 0 ? `2px solid ${ACCENT}` : "2px solid #e8ddd3" }}>
-              <img src={url} alt={`img-${i}`} style={{ width: "100%", height: "85px", objectFit: "cover", display: "block" }} />
-              {i === 0 && (
-                <span style={{ position: "absolute", top: "4px", left: "4px", background: ACCENT, color: "#fff", fontSize: "10px", fontWeight: 700, padding: "2px 6px", borderRadius: "4px" }}>
-                  COVER
-                </span>
-              )}
-              {/* Confirm overlay */}
-              {confirmImgDelete === i && (
-                <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.72)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "6px", padding: "8px" }}>
-                  <p style={{ color: "#fff", fontSize: "11px", fontWeight: 600, textAlign: "center", margin: 0 }}>Remove this image?</p>
+              {item.type === "video"
+                ? <video src={item.url} muted style={{ width: "100%", height: "85px", objectFit: "cover", display: "block" }} />
+                : <img src={item.url} alt={`media-${i}`} style={{ width: "100%", height: "85px", objectFit: "cover", display: "block" }} />
+              }
+              {i === 0 && <span style={{ position: "absolute", top: "4px", left: "4px", background: ACCENT, color: "#fff", fontSize: "10px", fontWeight: 700, padding: "2px 6px", borderRadius: "4px" }}>COVER</span>}
+              {item.type === "video" && <span style={{ position: "absolute", top: "4px", right: "4px", background: "rgba(0,0,0,0.6)", color: "#fff", fontSize: "10px", padding: "2px 6px", borderRadius: "4px" }}>▶ VIDEO</span>}
+              {confirmDelete === i && (
+                <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.75)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "6px", padding: "8px" }}>
+                  <p style={{ color: "#fff", fontSize: "11px", fontWeight: 600, textAlign: "center", margin: 0 }}>Remove?</p>
                   <div style={{ display: "flex", gap: "6px" }}>
-                    <button type="button" onClick={() => { onChange(images.filter((_, x) => x !== i)); setConfirmImgDelete(null); }}
-                      style={{ background: "#b91c1c", color: "#fff", border: "none", borderRadius: "4px", padding: "3px 10px", fontSize: "11px", fontWeight: 700, cursor: "pointer" }}>Yes</button>
-                    <button type="button" onClick={() => setConfirmImgDelete(null)}
-                      style={{ background: "#fff", color: "#2c1a0e", border: "none", borderRadius: "4px", padding: "3px 10px", fontSize: "11px", fontWeight: 700, cursor: "pointer" }}>No</button>
+                    <button type="button" onClick={() => { remove(i); setConfirmDelete(null); }} style={{ background: "#b91c1c", color: "#fff", border: "none", borderRadius: "4px", padding: "3px 10px", fontSize: "11px", fontWeight: 700, cursor: "pointer" }}>Yes</button>
+                    <button type="button" onClick={() => setConfirmDelete(null)} style={{ background: "#fff", color: "#2c1a0e", border: "none", borderRadius: "4px", padding: "3px 10px", fontSize: "11px", fontWeight: 700, cursor: "pointer" }}>No</button>
                   </div>
                 </div>
               )}
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "4px 8px", background: "#faf7f3" }}>
-                {i > 0 ? (
-                  <button type="button" onClick={() => moveUp(i)} title="Make cover"
-                    style={{ background: "none", border: "none", cursor: "pointer", fontSize: "14px", color: ACCENT, padding: "2px" }}>⬆</button>
-                ) : <span style={{ width: "20px" }} />}
-                <button type="button" onClick={() => setConfirmImgDelete(i)} title="Remove image"
-                  style={{ background: "#fee2e2", border: "none", cursor: "pointer", fontSize: "12px", color: "#b91c1c", borderRadius: "4px", padding: "2px 7px", fontWeight: 700 }}>✕</button>
+                {i > 0 ? <button type="button" onClick={() => moveUp(i)} title="Move up" style={{ background: "none", border: "none", cursor: "pointer", fontSize: "14px", color: ACCENT, padding: "2px" }}>⬆</button> : <span style={{ width: "20px" }} />}
+                <button type="button" onClick={() => setConfirmDelete(i)} style={{ background: "#fee2e2", border: "none", cursor: "pointer", fontSize: "12px", color: "#b91c1c", borderRadius: "4px", padding: "2px 7px", fontWeight: 700 }}>✕</button>
               </div>
             </div>
           ))}
         </div>
       )}
 
-      {/* Add via URL */}
+      {/* URL input */}
       <div style={{ display: "flex", gap: "8px", marginBottom: "8px" }}>
-        <input
-          type="url"
-          placeholder="Paste Cloudinary or image URL and press Add"
-          value={urlInput}
-          onChange={(e) => setUrlInput(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addUrl())}
-          style={{ ...inputStyle, flex: 1 }}
-        />
-        <button type="button" onClick={addUrl}
-          style={{ ...inputStyle, width: "auto", whiteSpace: "nowrap", cursor: "pointer", background: ACCENT_LIGHT, color: ACCENT, fontWeight: 600 }}>
-          + Add URL
-        </button>
+        <input type="url" placeholder="Paste image or video URL and press Add" value={urlInput}
+          onChange={e => setUrlInput(e.target.value)}
+          onKeyDown={e => e.key === "Enter" && (e.preventDefault(), addUrl())}
+          style={{ ...inputStyle, flex: 1 }} />
+        <button type="button" onClick={addUrl} style={{ ...inputStyle, width: "auto", whiteSpace: "nowrap", cursor: "pointer", background: ACCENT_LIGHT, color: ACCENT, fontWeight: 600 }}>+ Add URL</button>
       </div>
 
-      {/* Upload from device */}
+      {/* File upload — images + videos */}
       <button type="button" onClick={() => fileRef.current.click()}
         style={{ ...inputStyle, width: "auto", whiteSpace: "nowrap", cursor: "pointer", background: "#f1f5f9", color: "#4a3728", fontWeight: 600, display: "inline-flex", alignItems: "center", gap: "6px" }}>
-        📁 Upload from Device {images.length > 0 ? `(${images.length} added)` : ""}
+        📁 Upload Image / Video {items.length > 0 ? `(${items.length} added)` : ""}
       </button>
-      <input ref={fileRef} type="file" accept="image/*" multiple onChange={handleFiles} style={{ display: "none" }} />
+      <input ref={fileRef} type="file" accept="image/*,video/*" multiple onChange={handleFiles} style={{ display: "none" }} />
 
       {uploading && (
         <div style={{ marginTop: "8px" }}>
@@ -491,10 +497,13 @@ function MultiImageUploader({ images = [], onChange }) {
         </div>
       )}
       {error && <p style={{ fontSize: "12px", color: "#b91c1c", marginTop: "4px" }}>{error}</p>}
-      {images.length > 0 && <p style={{ fontSize: "11px", color: "#7a6655", marginTop: "6px" }}>First image is the cover. Use ⬆ to reorder, ✕ to remove.</p>}
+      {items.length > 0 && <p style={{ fontSize: "11px", color: "#7a6655", marginTop: "6px" }}>First item is the cover. Videos play muted in the hero (12–25s then auto-advance). Use ⬆ to reorder, ✕ to remove.</p>}
     </div>
   );
 }
+
+// Keep old name as alias so both hero + plot sections work
+const MultiImageUploader = MultiMediaUploader;
 function PlotForm({ plot, onChange }) {
   const set = (k) => (e) => onChange((p) => ({ ...p, [k]: e.target.value }));
 

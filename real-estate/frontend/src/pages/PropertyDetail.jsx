@@ -13,8 +13,11 @@ function ImageCarousel({ images }) {
 
   if (!images || images.length === 0) return null;
 
-  const prev = (e) => { e?.stopPropagation(); setCurrent((c) => (c - 1 + images.length) % images.length); };
-  const next = (e) => { e?.stopPropagation(); setCurrent((c) => (c + 1) % images.length); };
+  // normalise to objects
+  const items = images.map(v => typeof v === "string" ? { url: v, type: "image" } : v);
+
+  const prev = (e) => { e?.stopPropagation(); setCurrent((c) => (c - 1 + items.length) % items.length); };
+  const next = (e) => { e?.stopPropagation(); setCurrent((c) => (c + 1) % items.length); };
 
   const onTouchStart = (e) => setTouchStart(e.touches[0].clientX);
   const onTouchEnd = (e) => {
@@ -38,37 +41,42 @@ function ImageCarousel({ images }) {
     boxShadow: "0 2px 8px rgba(0,0,0,0.18)", zIndex: 2, color: "#2c1a0e",
   };
 
+  const curItem = items[current];
+
   return (
     <>
       {/* Carousel */}
-      <div className="detail-img" style={{ position: "relative", cursor: "zoom-in" }}
+      <div className="detail-img" style={{ position: "relative", cursor: curItem.type === "image" ? "zoom-in" : "default", background: "#000" }}
         onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
-        <img
-          src={images[current]} alt={`plot-${current + 1}`}
-          onClick={() => setLightbox(true)}
-          style={{ width: "100%", height: "100%", objectFit: "cover", transition: "opacity 0.25s" }}
-        />
-        {images.length > 1 && <>
+        {curItem.type === "video"
+          ? <video src={curItem.url} controls style={{ width: "100%", height: "100%", objectFit: "contain" }} />
+          : <img src={curItem.url} alt={`plot-${current + 1}`} onClick={() => setLightbox(true)}
+              style={{ width: "100%", height: "100%", objectFit: "cover", transition: "opacity 0.25s" }} />
+        }
+        {items.length > 1 && <>
           <button style={{ ...btnBase, left: "12px" }} onClick={prev}>‹</button>
           <button style={{ ...btnBase, right: "12px" }} onClick={next}>›</button>
           <div style={{ position: "absolute", bottom: "12px", left: "50%", transform: "translateX(-50%)", display: "flex", gap: "6px" }}>
-            {images.map((_, i) => (
+            {items.map((item, i) => (
               <button key={i} onClick={(e) => { e.stopPropagation(); setCurrent(i); }} style={{
                 width: i === current ? "20px" : "8px", height: "8px",
                 borderRadius: "4px", border: "none", cursor: "pointer",
                 background: i === current ? ACCENT : "rgba(255,255,255,0.7)",
                 transition: "all 0.2s", padding: 0,
-              }} />
+              }}>
+                {item.type === "video" && i === current && null}
+              </button>
             ))}
           </div>
         </>}
         <span style={{ position: "absolute", top: "12px", right: "12px", background: "rgba(0,0,0,0.5)", color: "#fff", fontSize: "12px", padding: "3px 10px", borderRadius: "12px" }}>
-          {images.length > 1 ? `${current + 1} / ${images.length}` : "Click to expand"}
+          {items.length > 1 ? `${current + 1} / ${items.length}` : curItem.type === "image" ? "Click to expand" : ""}
         </span>
+        {curItem.type === "video" && <span style={{ position: "absolute", top: "12px", left: "12px", background: "rgba(0,0,0,0.5)", color: "#fff", fontSize: "11px", padding: "3px 10px", borderRadius: "12px" }}>▶ Video</span>}
       </div>
 
-      {/* Lightbox */}
-      {lightbox && (
+      {/* Lightbox — only for images */}
+      {lightbox && curItem.type === "image" && (
         <div
           style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.92)", zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center" }}
           onClick={() => setLightbox(false)}
@@ -84,30 +92,34 @@ function ImageCarousel({ images }) {
           {/* Counter */}
           {images.length > 1 && (
             <span style={{ position: "absolute", top: "20px", left: "50%", transform: "translateX(-50%)", color: "#fff", fontSize: "14px", background: "rgba(255,255,255,0.15)", padding: "4px 14px", borderRadius: "20px" }}>
-              {current + 1} / {images.length}
+              {current + 1} / {items.length}
             </span>
           )}
 
-          {/* Image */}
+          {/* Image in lightbox */}
           <img
-            src={images[current]} alt={`plot-${current + 1}`}
+            src={curItem.url} alt={`plot-${current + 1}`}
             onClick={(e) => e.stopPropagation()}
             style={{ maxWidth: "92vw", maxHeight: "88vh", objectFit: "contain", borderRadius: "8px", boxShadow: "0 8px 40px rgba(0,0,0,0.6)" }}
           />
 
           {/* Prev / Next */}
-          {images.length > 1 && <>
+          {items.length > 1 && <>
             <button onClick={prev} style={{ position: "absolute", left: "16px", top: "50%", transform: "translateY(-50%)", background: "rgba(255,255,255,0.15)", border: "none", color: "#fff", fontSize: "32px", cursor: "pointer", borderRadius: "50%", width: "52px", height: "52px", display: "flex", alignItems: "center", justifyContent: "center" }}>‹</button>
             <button onClick={next} style={{ position: "absolute", right: "16px", top: "50%", transform: "translateY(-50%)", background: "rgba(255,255,255,0.15)", border: "none", color: "#fff", fontSize: "32px", cursor: "pointer", borderRadius: "50%", width: "52px", height: "52px", display: "flex", alignItems: "center", justifyContent: "center" }}>›</button>
           </>}
 
           {/* Thumbnail strip */}
-          {images.length > 1 && (
+          {items.length > 1 && (
             <div style={{ position: "absolute", bottom: "20px", left: "50%", transform: "translateX(-50%)", display: "flex", gap: "8px", maxWidth: "90vw", overflowX: "auto", padding: "4px" }}>
-              {images.map((url, i) => (
-                <img key={i} src={url} alt="" onClick={(e) => { e.stopPropagation(); setCurrent(i); }}
-                  style={{ width: "60px", height: "44px", objectFit: "cover", borderRadius: "6px", cursor: "pointer", flexShrink: 0, border: i === current ? `2px solid ${ACCENT}` : "2px solid rgba(255,255,255,0.3)", opacity: i === current ? 1 : 0.6, transition: "all 0.2s" }}
-                />
+              {items.map((item, i) => (
+                <div key={i} onClick={(e) => { e.stopPropagation(); setCurrent(i); }}
+                  style={{ width: "60px", height: "44px", borderRadius: "6px", cursor: "pointer", flexShrink: 0, border: i === current ? `2px solid ${ACCENT}` : "2px solid rgba(255,255,255,0.3)", opacity: i === current ? 1 : 0.6, overflow: "hidden", position: "relative", background: "#000" }}>
+                  {item.type === "video"
+                    ? <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontSize: "18px" }}>▶</div>
+                    : <img src={item.url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                  }
+                </div>
               ))}
             </div>
           )}
@@ -151,7 +163,7 @@ export default function PropertyDetail() {
   );
 
   const { title, price, priceUnit, badge, sizeRange, facing, location, image, images, description, features, approvals, category } = plot;
-  const allImages = (images && images.length > 0) ? images : (image ? [image] : []);
+  const allImages = (images && images.length > 0) ? images : (image ? [{ url: image, type: "image" }] : []);
 
   return (
     <div style={{ background: "#fff", minHeight: "100vh" }}>

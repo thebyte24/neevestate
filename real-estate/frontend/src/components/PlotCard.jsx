@@ -4,7 +4,13 @@ const ACCENT = "#7a5c2e";
 
 export default function PlotCard({ property }) {
   const { id, title, price, priceUnit, badge, sizeRange, facing, location, image, images, category } = property;
-  const coverImage = (images && images.length > 0) ? images[0] : image;
+  
+  // Normalize images array to handle both strings and objects
+  const normalizedImages = images && images.length > 0
+    ? images.map(v => typeof v === "string" ? { url: v, type: "image" } : v)
+    : (image ? [{ url: image, type: "image" }] : []);
+  
+  const coverMedia = normalizedImages.length > 0 ? normalizedImages[0] : null;
 
   return (
     <Link to={`/plot/${id}`} style={{ display: "block" }}>
@@ -13,20 +19,29 @@ export default function PlotCard({ property }) {
         onMouseEnter={e => { e.currentTarget.style.boxShadow = "0 12px 40px rgba(122,92,46,0.18)"; e.currentTarget.style.transform = "translateY(-4px)"; }}
         onMouseLeave={e => { e.currentTarget.style.boxShadow = "none"; e.currentTarget.style.transform = "translateY(0)"; }}
       >
-        {/* Image */}
+        {/* Image/Video */}
         <div style={{ position: "relative", height: "220px", overflow: "hidden", background: "#f0e8df" }}>
-          {coverImage && <img src={coverImage} alt={title} style={{ width: "100%", height: "100%", objectFit: "cover", transition: "transform 0.4s" }}
-            onMouseEnter={e => e.currentTarget.style.transform = "scale(1.04)"}
-            onMouseLeave={e => e.currentTarget.style.transform = "scale(1)"}
-          />}
+          {coverMedia && (
+            coverMedia.type === "video" 
+              ? <video src={coverMedia.url} muted playsInline style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+              : <img src={coverMedia.url} alt={title} style={{ width: "100%", height: "100%", objectFit: "cover", transition: "transform 0.4s" }}
+                  onMouseEnter={e => e.currentTarget.style.transform = "scale(1.04)"}
+                  onMouseLeave={e => e.currentTarget.style.transform = "scale(1)"}
+                />
+          )}
           {badge && (
             <span style={{ position: "absolute", top: "14px", left: "14px", background: "rgba(255,255,255,0.95)", color: "#2c1a0e", padding: "4px 12px", borderRadius: "20px", fontSize: "11px", fontWeight: 600, boxShadow: "0 2px 8px rgba(0,0,0,0.1)", backdropFilter: "blur(4px)" }}>
               {badge}
             </span>
           )}
-          {images && images.length > 1 && (
+          {coverMedia && coverMedia.type === "video" && (
+            <span style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)", background: "rgba(0,0,0,0.5)", color: "#fff", borderRadius: "50%", width: "48px", height: "48px", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "20px", pointerEvents: "none" }}>
+              ▶
+            </span>
+          )}
+          {normalizedImages.length > 1 && (
             <span style={{ position: "absolute", bottom: "12px", right: "12px", background: "rgba(0,0,0,0.55)", color: "#fff", padding: "3px 10px", borderRadius: "20px", fontSize: "11px", backdropFilter: "blur(4px)" }}>
-              📷 {images.length}
+              📷 {normalizedImages.length}
             </span>
           )}
           {category && (

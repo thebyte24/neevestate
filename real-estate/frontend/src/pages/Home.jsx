@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { collection, getDocs, doc, getDoc } from "firebase/firestore";
 import { db } from "../firebase";
@@ -26,7 +26,8 @@ export default function Home() {
   const [plots, setPlots] = useState([]);
   const [hero, setHero] = useState(DEFAULT_HERO);
   const [slide, setSlide] = useState(0);
-  const slideRef = useRef(null);
+  const videoRef = useRef(null);
+  const timerRef = useRef(null);
 
   useEffect(() => {
     getDoc(doc(db, "config", "hero")).then(snap => { if (snap.exists()) setHero(snap.data()); }).catch(() => {});
@@ -35,19 +36,31 @@ export default function Home() {
     });
   }, []);
 
-  const heroImages = (hero.images && hero.images.length > 0)
-    ? hero.images
-    : [hero.imageUrl || DEFAULT_HERO.imageUrl];
+  // Normalise: items can be { url, type } or plain strings
+  const heroItems = (() => {
+    const raw = (hero.images && hero.images.length > 0)
+      ? hero.images
+      : [hero.imageUrl || DEFAULT_HERO.imageUrl];
+    return raw.map(v => typeof v === "string" ? { url: v, type: "image" } : v);
+  })();
 
-  // Auto-advance timer
+  const goNext = useCallback(() => setSlide(s => (s + 1) % heroItems.length), [heroItems.length]);
+  const goPrev = () => setSlide(s => (s - 1 + heroItems.length) % heroItems.length);
+
+  // Auto-advance for image slides (3s). Video slides advance on onEnded or 25s cap.
   useEffect(() => {
-    if (heroImages.length <= 1) return;
-    const t = setInterval(() => setSlide(s => (s + 1) % heroImages.length), 3000);
-    return () => clearInterval(t);
-  }, [heroImages.length]);
+    clearTimeout(timerRef.current);
+    if (heroItems.length <= 1) return;
+    const cur = heroItems[slide];
+    if (cur?.type !== "video") {
+      timerRef.current = setTimeout(goNext, 3000);
+    } else {
+      // safety cap: advance after 25s even if video doesn't fire onEnded
+      timerRef.current = setTimeout(goNext, 25000);
+    }
+    return () => clearTimeout(timerRef.current);
+  }, [slide, heroItems.length, goNext]);
 
-  const prevSlide = () => setSlide(s => (s - 1 + heroImages.length) % heroImages.length);
-  const nextSlide = () => setSlide(s => (s + 1) % heroImages.length);
 
   return (
     <div>
@@ -72,48 +85,46 @@ export default function Home() {
       {/* HERO */}
       <section style={{ position: "relative", minHeight: "100vh", display: "flex", alignItems: "flex-end", overflow: "hidden" }}>
         {/* Slides */}
-        {heroImages.map((img, i) => (
-          <div key={i} style={{
-            position: "absolute", inset: 0,
-            backgroundImage: `url(${img})`,
-            backgroundSize: "cover", backgroundPosition: "center",
-            opacity: i === slide ? 1 : 0,
-            transition: "opacity 0.9s ease",
-          }} />
+        {heroItems.map((item, i) => (
+          <div key={i} style={{ position: "absolute", inset: 0, opacity: i === slide ? 1 : 0, transition: "opacity 0.9s ease", zIndex: 0 }}>
+            {item.type === "video"
+              ? <video
+                  ref={i === slide ? videoRef : null}
+                  src={item.url}
+                  autoPlay muted playsInline
+                  onEnded={goNext}
+                  style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                />
+              : <div style={{ position: "absolute", inset: 0, backgroundImage: `url(${item.url})`, backgroundSize: "cover", backgroundPosition: "center" }} />
+            }
+          </div>
         ))}
-        <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(10,6,2,0.9) 0%, rgba(10,6,2,0.45) 55%, rgba(10,6,2,0.1) 100%)" }} />
+        <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(10,6,2,0.9) 0%, rgba(10,6,2,0.45) 55%, rgba(10,6,2,0.1) 100%)", zIndex: 1 }} />
 
         {/* Prev / Next arrows */}
-        {heroImages.length > 1 && (
+        {heroItems.length > 1 && (
           <>
-            <button onClick={prevSlide} aria-label="Previous slide" style={{ position: "absolute", left: "24px", top: "50%", transform: "translateY(-50%)", background: "rgba(255,255,255,0.12)", backdropFilter: "blur(8px)", border: "1px solid rgba(255,255,255,0.2)", color: "#fff", borderRadius: "50%", width: "48px", height: "48px", fontSize: "22px", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 2, transition: "background 0.2s" }}
+            <button onClick={goPrev} aria-label="Previous slide" style={{ position: "absolute", left: "24px", top: "50%", transform: "translateY(-50%)", background: "rgba(255,255,255,0.12)", backdropFilter: "blur(8px)", border: "1px solid rgba(255,255,255,0.2)", color: "#fff", borderRadius: "50%", width: "48px", height: "48px", fontSize: "22px", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 2 }}
               onMouseEnter={e => e.currentTarget.style.background = "rgba(255,255,255,0.25)"}
-              onMouseLeave={e => e.currentTarget.style.background = "rgba(255,255,255,0.12)"}>
-              ‹
-            </button>
-            <button onClick={nextSlide} aria-label="Next slide" style={{ position: "absolute", right: "24px", top: "50%", transform: "translateY(-50%)", background: "rgba(255,255,255,0.12)", backdropFilter: "blur(8px)", border: "1px solid rgba(255,255,255,0.2)", color: "#fff", borderRadius: "50%", width: "48px", height: "48px", fontSize: "22px", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 2, transition: "background 0.2s" }}
+              onMouseLeave={e => e.currentTarget.style.background = "rgba(255,255,255,0.12)"}>‹</button>
+            <button onClick={goNext} aria-label="Next slide" style={{ position: "absolute", right: "24px", top: "50%", transform: "translateY(-50%)", background: "rgba(255,255,255,0.12)", backdropFilter: "blur(8px)", border: "1px solid rgba(255,255,255,0.2)", color: "#fff", borderRadius: "50%", width: "48px", height: "48px", fontSize: "22px", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 2 }}
               onMouseEnter={e => e.currentTarget.style.background = "rgba(255,255,255,0.25)"}
-              onMouseLeave={e => e.currentTarget.style.background = "rgba(255,255,255,0.12)"}>
-              ›
-            </button>
+              onMouseLeave={e => e.currentTarget.style.background = "rgba(255,255,255,0.12)"}>›</button>
           </>
         )}
 
         {/* Dot indicators */}
-        {heroImages.length > 1 && (
+        {heroItems.length > 1 && (
           <div style={{ position: "absolute", bottom: "32px", right: "40px", display: "flex", gap: "8px", zIndex: 2 }}>
-            {heroImages.map((_, i) => (
-              <button key={i} onClick={() => setSlide(i)} aria-label={`Slide ${i + 1}`} style={{
-                width: i === slide ? "24px" : "8px", height: "8px",
-                borderRadius: "4px", border: "none", cursor: "pointer", padding: 0,
-                background: i === slide ? "#fff" : "rgba(255,255,255,0.4)",
-                transition: "all 0.3s",
-              }} />
+            {heroItems.map((item, i) => (
+              <button key={i} onClick={() => setSlide(i)} aria-label={`Slide ${i + 1}`} style={{ width: i === slide ? "24px" : "8px", height: "8px", borderRadius: "4px", border: "none", cursor: "pointer", padding: 0, background: i === slide ? "#fff" : "rgba(255,255,255,0.4)", transition: "all 0.3s", position: "relative" }}>
+                {item.type === "video" && i === slide && <span style={{ position: "absolute", top: "-18px", left: "50%", transform: "translateX(-50%)", fontSize: "10px", color: "rgba(255,255,255,0.7)" }}>▶</span>}
+              </button>
             ))}
           </div>
         )}
 
-        <div className="hero-text" style={{ position: "relative" }}>
+        <div className="hero-text" style={{ position: "relative", zIndex: 2 }}>
           <div style={{ display: "inline-flex", alignItems: "center", gap: "8px", background: "rgba(255,255,255,0.1)", backdropFilter: "blur(8px)", border: "1px solid rgba(255,255,255,0.18)", borderRadius: "20px", padding: "6px 16px", marginBottom: "24px" }}>
             <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#4ade80", display: "inline-block", flexShrink: 0 }} />
             <span style={{ fontSize: "11px", fontWeight: 600, letterSpacing: "2px", color: "rgba(255,255,255,0.8)" }}>{hero.badge}</span>

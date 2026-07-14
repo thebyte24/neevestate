@@ -11,6 +11,10 @@ export const properties = [
     location: "Amaravati Capital Region, Guntur Dist., AP",
     city: "Guntur",
     image: "https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=800&q=80",
+    images: [
+      { url: "https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=800&q=80", type: "image" },
+      // Example: { url: "https://example.com/video.mp4", type: "video" }
+    ],
     description: "Premium gated layout in the heart of Amaravati Capital Region. DTCP approved with wide BT roads, underground drainage, and 24/7 security. Ideal for investment and self-construction.",
     features: ["DTCP Approved", "Gated Layout", "BT Roads", "Underground Drainage", "24/7 Security", "Street Lights"],
     approvals: "DTCP",
