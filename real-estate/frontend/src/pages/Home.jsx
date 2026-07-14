@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Link } from "react-router-dom";
 import { collection, getDocs, doc, getDoc } from "firebase/firestore";
 import { db } from "../firebase";
@@ -25,6 +25,8 @@ const WHY = [
 export default function Home() {
   const [plots, setPlots] = useState([]);
   const [hero, setHero] = useState(DEFAULT_HERO);
+  const [slide, setSlide] = useState(0);
+  const slideRef = useRef(null);
 
   useEffect(() => {
     getDoc(doc(db, "config", "hero")).then(snap => { if (snap.exists()) setHero(snap.data()); }).catch(() => {});
@@ -33,7 +35,19 @@ export default function Home() {
     });
   }, []);
 
-  const heroImg = (hero.images && hero.images[0]) || hero.imageUrl || DEFAULT_HERO.imageUrl;
+  const heroImages = (hero.images && hero.images.length > 0)
+    ? hero.images
+    : [hero.imageUrl || DEFAULT_HERO.imageUrl];
+
+  // Auto-advance timer
+  useEffect(() => {
+    if (heroImages.length <= 1) return;
+    const t = setInterval(() => setSlide(s => (s + 1) % heroImages.length), 3000);
+    return () => clearInterval(t);
+  }, [heroImages.length]);
+
+  const prevSlide = () => setSlide(s => (s - 1 + heroImages.length) % heroImages.length);
+  const nextSlide = () => setSlide(s => (s + 1) % heroImages.length);
 
   return (
     <div>
@@ -57,8 +71,47 @@ export default function Home() {
 
       {/* HERO */}
       <section style={{ position: "relative", minHeight: "100vh", display: "flex", alignItems: "flex-end", overflow: "hidden" }}>
-        <div style={{ position: "absolute", inset: 0, backgroundImage: `url(${heroImg})`, backgroundSize: "cover", backgroundPosition: "center" }} />
+        {/* Slides */}
+        {heroImages.map((img, i) => (
+          <div key={i} style={{
+            position: "absolute", inset: 0,
+            backgroundImage: `url(${img})`,
+            backgroundSize: "cover", backgroundPosition: "center",
+            opacity: i === slide ? 1 : 0,
+            transition: "opacity 0.9s ease",
+          }} />
+        ))}
         <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(10,6,2,0.9) 0%, rgba(10,6,2,0.45) 55%, rgba(10,6,2,0.1) 100%)" }} />
+
+        {/* Prev / Next arrows */}
+        {heroImages.length > 1 && (
+          <>
+            <button onClick={prevSlide} aria-label="Previous slide" style={{ position: "absolute", left: "24px", top: "50%", transform: "translateY(-50%)", background: "rgba(255,255,255,0.12)", backdropFilter: "blur(8px)", border: "1px solid rgba(255,255,255,0.2)", color: "#fff", borderRadius: "50%", width: "48px", height: "48px", fontSize: "22px", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 2, transition: "background 0.2s" }}
+              onMouseEnter={e => e.currentTarget.style.background = "rgba(255,255,255,0.25)"}
+              onMouseLeave={e => e.currentTarget.style.background = "rgba(255,255,255,0.12)"}>
+              ‹
+            </button>
+            <button onClick={nextSlide} aria-label="Next slide" style={{ position: "absolute", right: "24px", top: "50%", transform: "translateY(-50%)", background: "rgba(255,255,255,0.12)", backdropFilter: "blur(8px)", border: "1px solid rgba(255,255,255,0.2)", color: "#fff", borderRadius: "50%", width: "48px", height: "48px", fontSize: "22px", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 2, transition: "background 0.2s" }}
+              onMouseEnter={e => e.currentTarget.style.background = "rgba(255,255,255,0.25)"}
+              onMouseLeave={e => e.currentTarget.style.background = "rgba(255,255,255,0.12)"}>
+              ›
+            </button>
+          </>
+        )}
+
+        {/* Dot indicators */}
+        {heroImages.length > 1 && (
+          <div style={{ position: "absolute", bottom: "32px", right: "40px", display: "flex", gap: "8px", zIndex: 2 }}>
+            {heroImages.map((_, i) => (
+              <button key={i} onClick={() => setSlide(i)} aria-label={`Slide ${i + 1}`} style={{
+                width: i === slide ? "24px" : "8px", height: "8px",
+                borderRadius: "4px", border: "none", cursor: "pointer", padding: 0,
+                background: i === slide ? "#fff" : "rgba(255,255,255,0.4)",
+                transition: "all 0.3s",
+              }} />
+            ))}
+          </div>
+        )}
 
         <div className="hero-text" style={{ position: "relative" }}>
           <div style={{ display: "inline-flex", alignItems: "center", gap: "8px", background: "rgba(255,255,255,0.1)", backdropFilter: "blur(8px)", border: "1px solid rgba(255,255,255,0.18)", borderRadius: "20px", padding: "6px 16px", marginBottom: "24px" }}>
