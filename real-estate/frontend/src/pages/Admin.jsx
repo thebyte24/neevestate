@@ -253,9 +253,15 @@ export default function Admin() {
           <div>
             {editingPlot ? (
               <div style={{ background: "#fff", borderRadius: "14px", padding: "32px", border: "1px solid #e8ddd3", marginBottom: "24px" }}>
-                <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: "20px", marginBottom: "24px" }}>
-                  {isNew ? "Add New Plot" : "Edit Plot"}
-                </h2>
+                <div style={{ display: "flex", alignItems: "center", gap: "14px", marginBottom: "24px" }}>
+                  <button onClick={() => setEditingPlot(null)}
+                    style={{ background: "none", border: "1px solid #ddd6ce", borderRadius: "8px", padding: "6px 14px", cursor: "pointer", color: "#7a6655", fontSize: "14px", display: "flex", alignItems: "center", gap: "6px" }}>
+                    ← Back
+                  </button>
+                  <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: "20px", margin: 0 }}>
+                    {isNew ? "Add New Plot" : "Edit Plot"}
+                  </h2>
+                </div>
                 <PlotForm plot={editingPlot} onChange={setEditingPlot} />
                 <div style={{ display: "flex", gap: "12px", marginTop: "24px" }}>
                   <button onClick={savePlot} style={btnPrimary}>{isNew ? "Add Plot" : "Save Changes"}</button>
@@ -360,7 +366,15 @@ function MultiImageUploader({ images = [], onChange }) {
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState("");
+  const [urlInput, setUrlInput] = useState("");
   const fileRef = useRef();
+
+  const addUrl = () => {
+    const trimmed = urlInput.trim();
+    if (!trimmed) return;
+    onChange([...images, trimmed]);
+    setUrlInput("");
+  };
 
   const handleFiles = async (e) => {
     const files = Array.from(e.target.files);
@@ -397,32 +411,48 @@ function MultiImageUploader({ images = [], onChange }) {
     <div>
       {/* Thumbnail grid */}
       {images.length > 0 && (
-        <div style={{ display: "flex", flexWrap: "wrap", gap: "10px", marginBottom: "12px" }}>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: "10px", marginBottom: "14px" }}>
           {images.map((url, i) => (
-            <div key={i} style={{ position: "relative", width: "120px", borderRadius: "8px", overflow: "hidden", border: i === 0 ? `2px solid ${ACCENT}` : "2px solid #e8ddd3" }}>
-              <img src={url} alt={`img-${i}`} style={{ width: "100%", height: "80px", objectFit: "cover", display: "block" }} />
+            <div key={i} style={{ position: "relative", width: "130px", borderRadius: "8px", overflow: "hidden", border: i === 0 ? `2px solid ${ACCENT}` : "2px solid #e8ddd3" }}>
+              <img src={url} alt={`img-${i}`} style={{ width: "100%", height: "85px", objectFit: "cover", display: "block" }} />
               {i === 0 && (
                 <span style={{ position: "absolute", top: "4px", left: "4px", background: ACCENT, color: "#fff", fontSize: "10px", fontWeight: 700, padding: "2px 6px", borderRadius: "4px" }}>
                   COVER
                 </span>
               )}
-              <div style={{ display: "flex", justifyContent: "space-between", padding: "4px 6px", background: "#faf7f3" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "4px 8px", background: "#faf7f3" }}>
                 {i > 0 ? (
-                  <button type="button" onClick={() => moveUp(i)} title="Set as cover"
-                    style={{ background: "none", border: "none", cursor: "pointer", fontSize: "13px", color: ACCENT }}>⬆</button>
-                ) : <span />}
-                <button type="button" onClick={() => remove(i)} title="Remove"
-                  style={{ background: "none", border: "none", cursor: "pointer", fontSize: "13px", color: "#b91c1c" }}>✕</button>
+                  <button type="button" onClick={() => moveUp(i)} title="Make cover"
+                    style={{ background: "none", border: "none", cursor: "pointer", fontSize: "14px", color: ACCENT, padding: "2px" }}>⬆</button>
+                ) : <span style={{ width: "20px" }} />}
+                <button type="button" onClick={() => remove(i)} title="Remove image"
+                  style={{ background: "#fee2e2", border: "none", cursor: "pointer", fontSize: "12px", color: "#b91c1c", borderRadius: "4px", padding: "2px 7px", fontWeight: 700 }}>✕</button>
               </div>
             </div>
           ))}
         </div>
       )}
 
-      {/* Upload button */}
+      {/* Add via URL */}
+      <div style={{ display: "flex", gap: "8px", marginBottom: "8px" }}>
+        <input
+          type="url"
+          placeholder="Paste Cloudinary or image URL and press Add"
+          value={urlInput}
+          onChange={(e) => setUrlInput(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addUrl())}
+          style={{ ...inputStyle, flex: 1 }}
+        />
+        <button type="button" onClick={addUrl}
+          style={{ ...inputStyle, width: "auto", whiteSpace: "nowrap", cursor: "pointer", background: ACCENT_LIGHT, color: ACCENT, fontWeight: 600 }}>
+          + Add URL
+        </button>
+      </div>
+
+      {/* Upload from device */}
       <button type="button" onClick={() => fileRef.current.click()}
-        style={{ ...inputStyle, width: "auto", whiteSpace: "nowrap", cursor: "pointer", background: ACCENT_LIGHT, color: ACCENT, fontWeight: 600, display: "inline-block" }}>
-        📁 Add Images {images.length > 0 ? `(${images.length} added)` : ""}
+        style={{ ...inputStyle, width: "auto", whiteSpace: "nowrap", cursor: "pointer", background: "#f1f5f9", color: "#4a3728", fontWeight: 600, display: "inline-flex", alignItems: "center", gap: "6px" }}>
+        📁 Upload from Device {images.length > 0 ? `(${images.length} added)` : ""}
       </button>
       <input ref={fileRef} type="file" accept="image/*" multiple onChange={handleFiles} style={{ display: "none" }} />
 
@@ -435,7 +465,7 @@ function MultiImageUploader({ images = [], onChange }) {
         </div>
       )}
       {error && <p style={{ fontSize: "12px", color: "#b91c1c", marginTop: "4px" }}>{error}</p>}
-      {images.length > 0 && <p style={{ fontSize: "11px", color: "#7a6655", marginTop: "6px" }}>First image is the cover. Use ⬆ to reorder.</p>}
+      {images.length > 0 && <p style={{ fontSize: "11px", color: "#7a6655", marginTop: "6px" }}>First image is the cover. Use ⬆ to reorder, ✕ to remove.</p>}
     </div>
   );
 }

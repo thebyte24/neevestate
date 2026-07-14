@@ -110,9 +110,9 @@ export default function PropertyDetail() {
           .enquiry-card { position: static !important; }
         }
       `}</style>
-      <Link to="/plots" style={{ color: ACCENT, fontWeight: 500, fontSize: "14px", display: "inline-block", marginBottom: "24px" }}>
-        ← Back to plots
-      </Link>
+      <button onClick={() => window.history.back()} style={{ background: "none", border: "none", color: ACCENT, fontWeight: 500, fontSize: "14px", cursor: "pointer", display: "inline-block", marginBottom: "24px", padding: 0 }}>
+        ← Back
+      </button>
 
       <ImageCarousel images={allImages} />
 
