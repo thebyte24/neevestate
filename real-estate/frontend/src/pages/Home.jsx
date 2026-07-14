@@ -47,17 +47,16 @@ export default function Home() {
   const goNext = useCallback(() => setSlide(s => (s + 1) % heroItems.length), [heroItems.length]);
   const goPrev = () => setSlide(s => (s - 1 + heroItems.length) % heroItems.length);
 
-  // Auto-advance for image slides (3s). Video slides advance on onEnded or 25s cap.
+  // Auto-advance: image slides stay 5s, video slides play until end (no timer, relies on onEnded)
   useEffect(() => {
     clearTimeout(timerRef.current);
     if (heroItems.length <= 1) return;
     const cur = heroItems[slide];
     if (cur?.type !== "video") {
-      timerRef.current = setTimeout(goNext, 3000);
-    } else {
-      // safety cap: advance after 25s even if video doesn't fire onEnded
-      timerRef.current = setTimeout(goNext, 25000);
+      // Image slide: advance after 5 seconds
+      timerRef.current = setTimeout(goNext, 5000);
     }
+    // For video slides, we rely solely on the onEnded event (no timeout)
     return () => clearTimeout(timerRef.current);
   }, [slide, heroItems.length, goNext]);
 
