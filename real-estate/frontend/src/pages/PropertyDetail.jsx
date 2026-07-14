@@ -8,19 +8,13 @@ const ACCENT_LIGHT = "#f0e8df";
 
 function ImageCarousel({ images }) {
   const [current, setCurrent] = useState(0);
+  const [lightbox, setLightbox] = useState(false);
   const [touchStart, setTouchStart] = useState(null);
 
   if (!images || images.length === 0) return null;
-  if (images.length === 1) {
-    return (
-      <div className="detail-img">
-        <img src={images[0]} alt="plot" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-      </div>
-    );
-  }
 
-  const prev = () => setCurrent((c) => (c - 1 + images.length) % images.length);
-  const next = () => setCurrent((c) => (c + 1) % images.length);
+  const prev = (e) => { e?.stopPropagation(); setCurrent((c) => (c - 1 + images.length) % images.length); };
+  const next = (e) => { e?.stopPropagation(); setCurrent((c) => (c + 1) % images.length); };
 
   const onTouchStart = (e) => setTouchStart(e.touches[0].clientX);
   const onTouchEnd = (e) => {
@@ -28,6 +22,12 @@ function ImageCarousel({ images }) {
     const diff = touchStart - e.changedTouches[0].clientX;
     if (Math.abs(diff) > 40) diff > 0 ? next() : prev();
     setTouchStart(null);
+  };
+
+  const handleKey = (e) => {
+    if (e.key === "ArrowRight") next();
+    else if (e.key === "ArrowLeft") prev();
+    else if (e.key === "Escape") setLightbox(false);
   };
 
   const btnBase = {
@@ -39,27 +39,81 @@ function ImageCarousel({ images }) {
   };
 
   return (
-    <div className="detail-img" style={{ position: "relative" }}
-      onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
-      <img src={images[current]} alt={`plot-${current + 1}`}
-        style={{ width: "100%", height: "100%", objectFit: "cover", transition: "opacity 0.25s" }} />
-      <button style={{ ...btnBase, left: "12px" }} onClick={prev}>‹</button>
-      <button style={{ ...btnBase, right: "12px" }} onClick={next}>›</button>
-      {/* Dots */}
-      <div style={{ position: "absolute", bottom: "12px", left: "50%", transform: "translateX(-50%)", display: "flex", gap: "6px" }}>
-        {images.map((_, i) => (
-          <button key={i} onClick={() => setCurrent(i)} style={{
-            width: i === current ? "20px" : "8px", height: "8px",
-            borderRadius: "4px", border: "none", cursor: "pointer",
-            background: i === current ? ACCENT : "rgba(255,255,255,0.7)",
-            transition: "all 0.2s", padding: 0,
-          }} />
-        ))}
+    <>
+      {/* Carousel */}
+      <div className="detail-img" style={{ position: "relative", cursor: "zoom-in" }}
+        onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
+        <img
+          src={images[current]} alt={`plot-${current + 1}`}
+          onClick={() => setLightbox(true)}
+          style={{ width: "100%", height: "100%", objectFit: "cover", transition: "opacity 0.25s" }}
+        />
+        {images.length > 1 && <>
+          <button style={{ ...btnBase, left: "12px" }} onClick={prev}>‹</button>
+          <button style={{ ...btnBase, right: "12px" }} onClick={next}>›</button>
+          <div style={{ position: "absolute", bottom: "12px", left: "50%", transform: "translateX(-50%)", display: "flex", gap: "6px" }}>
+            {images.map((_, i) => (
+              <button key={i} onClick={(e) => { e.stopPropagation(); setCurrent(i); }} style={{
+                width: i === current ? "20px" : "8px", height: "8px",
+                borderRadius: "4px", border: "none", cursor: "pointer",
+                background: i === current ? ACCENT : "rgba(255,255,255,0.7)",
+                transition: "all 0.2s", padding: 0,
+              }} />
+            ))}
+          </div>
+        </>}
+        <span style={{ position: "absolute", top: "12px", right: "12px", background: "rgba(0,0,0,0.5)", color: "#fff", fontSize: "12px", padding: "3px 10px", borderRadius: "12px" }}>
+          {images.length > 1 ? `${current + 1} / ${images.length}` : "Click to expand"}
+        </span>
       </div>
-      <span style={{ position: "absolute", top: "12px", right: "12px", background: "rgba(0,0,0,0.5)", color: "#fff", fontSize: "12px", padding: "3px 10px", borderRadius: "12px" }}>
-        {current + 1} / {images.length}
-      </span>
-    </div>
+
+      {/* Lightbox */}
+      {lightbox && (
+        <div
+          style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.92)", zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center" }}
+          onClick={() => setLightbox(false)}
+          onKeyDown={handleKey}
+          tabIndex={0}
+          ref={(el) => el?.focus()}
+          onTouchStart={onTouchStart}
+          onTouchEnd={onTouchEnd}
+        >
+          {/* Close */}
+          <button onClick={() => setLightbox(false)} style={{ position: "absolute", top: "16px", right: "20px", background: "rgba(255,255,255,0.15)", border: "none", color: "#fff", fontSize: "24px", cursor: "pointer", borderRadius: "50%", width: "44px", height: "44px", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 2 }}>✕</button>
+
+          {/* Counter */}
+          {images.length > 1 && (
+            <span style={{ position: "absolute", top: "20px", left: "50%", transform: "translateX(-50%)", color: "#fff", fontSize: "14px", background: "rgba(255,255,255,0.15)", padding: "4px 14px", borderRadius: "20px" }}>
+              {current + 1} / {images.length}
+            </span>
+          )}
+
+          {/* Image */}
+          <img
+            src={images[current]} alt={`plot-${current + 1}`}
+            onClick={(e) => e.stopPropagation()}
+            style={{ maxWidth: "92vw", maxHeight: "88vh", objectFit: "contain", borderRadius: "8px", boxShadow: "0 8px 40px rgba(0,0,0,0.6)" }}
+          />
+
+          {/* Prev / Next */}
+          {images.length > 1 && <>
+            <button onClick={prev} style={{ position: "absolute", left: "16px", top: "50%", transform: "translateY(-50%)", background: "rgba(255,255,255,0.15)", border: "none", color: "#fff", fontSize: "32px", cursor: "pointer", borderRadius: "50%", width: "52px", height: "52px", display: "flex", alignItems: "center", justifyContent: "center" }}>‹</button>
+            <button onClick={next} style={{ position: "absolute", right: "16px", top: "50%", transform: "translateY(-50%)", background: "rgba(255,255,255,0.15)", border: "none", color: "#fff", fontSize: "32px", cursor: "pointer", borderRadius: "50%", width: "52px", height: "52px", display: "flex", alignItems: "center", justifyContent: "center" }}>›</button>
+          </>}
+
+          {/* Thumbnail strip */}
+          {images.length > 1 && (
+            <div style={{ position: "absolute", bottom: "20px", left: "50%", transform: "translateX(-50%)", display: "flex", gap: "8px", maxWidth: "90vw", overflowX: "auto", padding: "4px" }}>
+              {images.map((url, i) => (
+                <img key={i} src={url} alt="" onClick={(e) => { e.stopPropagation(); setCurrent(i); }}
+                  style={{ width: "60px", height: "44px", objectFit: "cover", borderRadius: "6px", cursor: "pointer", flexShrink: 0, border: i === current ? `2px solid ${ACCENT}` : "2px solid rgba(255,255,255,0.3)", opacity: i === current ? 1 : 0.6, transition: "all 0.2s" }}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+    </>
   );
 }
 
