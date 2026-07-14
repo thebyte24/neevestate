@@ -1,25 +1,33 @@
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap');
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
 
 body {
   font-family: "Inter", "Helvetica Neue", sans-serif;
-  background: #f5f0eb;
-  color: #2c1a0e;
+  background: #ffffff;
+  color: #1a1a1a;
+  -webkit-font-smoothing: antialiased;
 }
 
-a {
-  text-decoration: none;
-  color: inherit;
+a { text-decoration: none; color: inherit; }
+button { cursor: pointer; font-family: inherit; }
+input, select, textarea { font-family: inherit; }
+
+:root {
+  --accent: #7a5c2e;
+  --accent-light: #f0e8df;
+  --accent-dark: #5a3e1a;
+  --dark: #1a1208;
+  --mid: #5a4a3a;
+  --light: #f7f3ee;
+  --border: #e8ddd3;
 }
 
-button {
-  cursor: pointer;
-  font-family: inherit;
-}
-
-input, select, textarea {
-  font-family: inherit;
+.section-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 12px;
 }

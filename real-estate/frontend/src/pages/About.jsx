@@ -1,71 +1,56 @@
 import { Link } from "react-router-dom";
 
 const ACCENT = "#7a5c2e";
-const ACCENT_LIGHT = "#f0e8df";
 
 export default function About() {
   return (
-    <div>
+    <div style={{ background: "#fff" }}>
       {/* Hero */}
-      <section style={{
-        background: `linear-gradient(135deg, #2c1a0e 60%, #7a5c2e 100%)`,
-        padding: "80px 32px 72px",
-        textAlign: "center",
-      }}>
-        <p style={{ fontSize: "12px", fontWeight: 600, letterSpacing: "2px", color: "rgba(255,255,255,0.6)", marginBottom: "14px" }}>
-          ABOUT US
-        </p>
-        <h1 style={{
-          fontFamily: "'Playfair Display', serif", fontSize: "clamp(28px, 4vw, 52px)",
-          fontWeight: 800, color: "#fff", lineHeight: 1.2, marginBottom: "18px",
-        }}>
+      <section style={{ background: "linear-gradient(135deg, #1a1208 0%, #3d2810 100%)", padding: "80px 32px 72px", textAlign: "center" }}>
+        <p style={{ fontSize: "11px", fontWeight: 700, letterSpacing: "3px", color: "rgba(255,255,255,0.4)", marginBottom: "16px" }}>ABOUT US</p>
+        <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: "clamp(28px,4vw,56px)", fontWeight: 800, color: "#fff", lineHeight: 1.15, marginBottom: "20px" }}>
           Rooted in Andhra,<br />Built on Trust
         </h1>
-        <p style={{ color: "rgba(255,255,255,0.75)", fontSize: "17px", maxWidth: "560px", margin: "0 auto", lineHeight: 1.7 }}>
+        <p style={{ color: "rgba(255,255,255,0.65)", fontSize: "17px", maxWidth: "540px", margin: "0 auto", lineHeight: 1.75 }}>
           Neev Estate has been helping families and investors find the right land across Andhra Pradesh — with honesty, clear titles, and no surprises.
         </p>
       </section>
 
       {/* Story */}
-      <section style={{ padding: "80px 32px", maxWidth: "1100px", margin: "0 auto" }}>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "64px", alignItems: "center" }}>
+      <section style={{ padding: "80px 32px", maxWidth: "1280px", margin: "0 auto" }}>
+        <style>{`
+          .story-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 72px; align-items: center; }
+          @media (max-width: 900px) { .story-grid { grid-template-columns: 1fr !important; gap: 36px !important; } }
+        `}</style>
+        <div className="story-grid">
           <div>
-            <p style={{ fontSize: "12px", fontWeight: 600, letterSpacing: "2px", color: ACCENT, marginBottom: "12px" }}>OUR STORY</p>
-            <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: "clamp(22px, 3vw, 36px)", fontWeight: 700, lineHeight: 1.3, marginBottom: "20px" }}>
+            <p style={{ fontSize: "11px", fontWeight: 700, letterSpacing: "3px", color: ACCENT, marginBottom: "14px" }}>OUR STORY</p>
+            <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: "clamp(22px,3vw,38px)", fontWeight: 700, lineHeight: 1.25, marginBottom: "22px", color: "#1a1208" }}>
               From Nellore to every corner of Andhra Pradesh
             </h2>
             <p style={{ fontSize: "15px", color: "#5a4a3a", lineHeight: 1.85, marginBottom: "16px" }}>
-              Founded and led by <strong>N. Sreedhar</strong>, Neev Estate began with a simple belief — land investment should be transparent, accessible, and stress-free for every buyer, whether they're purchasing their first plot or expanding a portfolio.
+              Founded and led by <strong>N. Sreedhar</strong>, Neev Estate began with a simple belief — land investment should be transparent, accessible, and stress-free for every buyer.
             </p>
             <p style={{ fontSize: "15px", color: "#5a4a3a", lineHeight: 1.85, marginBottom: "16px" }}>
-              Operating from Nellore, we source and develop DTCP-approved open plots, gated layouts, and farm lands across the state's fastest-growing corridors including Amaravati, Vijayawada, Guntur, Visakhapatnam, and Tirupati.
+              Operating from Nellore, we source and develop DTCP-approved open plots, gated layouts, and farm lands across the state's fastest-growing corridors.
             </p>
             <p style={{ fontSize: "15px", color: "#5a4a3a", lineHeight: 1.85 }}>
               Every property we list comes with verified documentation, clear title assurance, and end-to-end support — from site visit to registration.
             </p>
           </div>
-          <div style={{ borderRadius: "16px", overflow: "hidden", height: "420px" }}>
-            <img
-              src="https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=800&q=80"
-              alt="Andhra Pradesh land"
-              style={{ width: "100%", height: "100%", objectFit: "cover" }}
-            />
+          <div style={{ borderRadius: "20px", overflow: "hidden", height: "440px", boxShadow: "0 24px 64px rgba(0,0,0,0.12)" }}>
+            <img src="https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=800&q=80" alt="Andhra Pradesh land" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
           </div>
         </div>
       </section>
 
       {/* Stats */}
-      <section style={{ background: ACCENT_LIGHT, padding: "64px 32px" }}>
-        <div style={{ maxWidth: "1100px", margin: "0 auto" }}>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: "32px", textAlign: "center" }}>
-            {[
-              { value: "10+", label: "Layouts across AP" },
-              { value: "1,200+", label: "Plots sold" },
-              { value: "100%", label: "Clear titles" },
-              { value: "15+", label: "Years of experience" },
-            ].map((s) => (
-              <div key={s.label} style={{ padding: "28px 20px", background: "#fff", borderRadius: "12px", border: "1px solid #e8ddd3" }}>
-                <p style={{ fontFamily: "'Playfair Display', serif", fontSize: "36px", fontWeight: 700, color: ACCENT, marginBottom: "6px" }}>{s.value}</p>
+      <section style={{ background: "#f7f3ee", padding: "72px 32px" }}>
+        <div style={{ maxWidth: "1280px", margin: "0 auto" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(200px,1fr))", gap: "24px" }}>
+            {[{ value: "10+", label: "Layouts across AP" }, { value: "1,200+", label: "Plots sold" }, { value: "100%", label: "Clear titles" }, { value: "15+", label: "Years of experience" }].map(s => (
+              <div key={s.label} style={{ padding: "36px 24px", background: "#fff", borderRadius: "16px", border: "1px solid #ede5db", textAlign: "center" }}>
+                <p style={{ fontFamily: "'Playfair Display', serif", fontSize: "40px", fontWeight: 700, color: ACCENT, marginBottom: "8px" }}>{s.value}</p>
                 <p style={{ fontSize: "14px", color: "#7a6655" }}>{s.label}</p>
               </div>
             ))}
@@ -74,53 +59,48 @@ export default function About() {
       </section>
 
       {/* Team */}
-      <section style={{ padding: "80px 32px", maxWidth: "1100px", margin: "0 auto" }}>
-        <p style={{ fontSize: "12px", fontWeight: 600, letterSpacing: "2px", color: ACCENT, textAlign: "center", marginBottom: "10px" }}>LEADERSHIP</p>
-        <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: "clamp(22px, 3vw, 36px)", fontWeight: 700, textAlign: "center", marginBottom: "48px" }}>
-          The person behind Neev Estate
-        </h2>
-        <div style={{ maxWidth: "480px", margin: "0 auto", background: "#fff", borderRadius: "16px", border: "1px solid #e8ddd3", padding: "40px 36px", textAlign: "center" }}>
-          <div style={{ width: "80px", height: "80px", borderRadius: "50%", background: ACCENT_LIGHT, margin: "0 auto 20px", display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <span style={{ fontSize: "32px" }}>👤</span>
+      <section style={{ padding: "80px 32px", maxWidth: "1280px", margin: "0 auto" }}>
+        <div style={{ textAlign: "center", marginBottom: "52px" }}>
+          <p style={{ fontSize: "11px", fontWeight: 700, letterSpacing: "3px", color: ACCENT, marginBottom: "12px" }}>LEADERSHIP</p>
+          <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: "clamp(22px,3vw,38px)", fontWeight: 700, color: "#1a1208" }}>The person behind Neev Estate</h2>
+        </div>
+        <div style={{ maxWidth: "500px", margin: "0 auto", background: "#faf7f3", borderRadius: "20px", border: "1px solid #ede5db", padding: "44px 40px", textAlign: "center" }}>
+          <div style={{ width: "88px", height: "88px", borderRadius: "50%", background: "#f0e8df", margin: "0 auto 22px", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "36px", border: `3px solid ${ACCENT}` }}>
+            👤
           </div>
-          <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: "22px", fontWeight: 700, marginBottom: "6px" }}>N. Sreedhar</h3>
-          <p style={{ color: ACCENT, fontSize: "13px", fontWeight: 600, letterSpacing: "0.5px", marginBottom: "16px" }}>Founder & Managing Director</p>
-          <p style={{ fontSize: "14px", color: "#7a6655", lineHeight: 1.75, marginBottom: "20px" }}>
+          <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: "24px", fontWeight: 700, marginBottom: "6px", color: "#1a1208" }}>N. Sreedhar</h3>
+          <p style={{ color: ACCENT, fontSize: "13px", fontWeight: 600, letterSpacing: "0.5px", marginBottom: "18px" }}>Founder & Managing Director</p>
+          <p style={{ fontSize: "14px", color: "#7a6655", lineHeight: 1.8, marginBottom: "24px" }}>
             With over 15 years in Andhra Pradesh real estate, Sreedhar has helped hundreds of families secure DTCP-approved land with zero legal complications.
           </p>
-          <div style={{ display: "flex", justifyContent: "center", gap: "12px", flexWrap: "wrap" }}>
-            <a href="tel:+919347102038" style={{ background: ACCENT_LIGHT, color: ACCENT, padding: "8px 18px", borderRadius: "20px", fontSize: "13px", fontWeight: 600 }}>
+          <div style={{ display: "flex", justifyContent: "center", gap: "10px", flexWrap: "wrap" }}>
+            <a href="tel:+919347102038" style={{ background: ACCENT, color: "#fff", padding: "10px 20px", borderRadius: "8px", fontSize: "13px", fontWeight: 600, display: "inline-flex", alignItems: "center", gap: "6px" }}>
               📞 +91 93471 02038
             </a>
-            <a href="mailto:sreedharn7@gmail.com" style={{ background: ACCENT_LIGHT, color: ACCENT, padding: "8px 18px", borderRadius: "20px", fontSize: "13px", fontWeight: 600 }}>
-              ✉️ sreedharn7@gmail.com
+            <a href="mailto:sreedharn7@gmail.com" style={{ background: "#f0e8df", color: ACCENT, padding: "10px 20px", borderRadius: "8px", fontSize: "13px", fontWeight: 600 }}>
+              ✉️ Email
             </a>
           </div>
         </div>
       </section>
 
       {/* CTA */}
-      <section style={{ background: ACCENT, margin: "0 32px 64px", borderRadius: "16px", padding: "56px 32px", textAlign: "center" }}>
-        <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: "clamp(22px, 3vw, 36px)", fontWeight: 700, color: "#fff", marginBottom: "12px" }}>
-          Let's find your perfect plot
-        </h2>
-        <p style={{ color: "rgba(255,255,255,0.8)", fontSize: "16px", marginBottom: "32px" }}>
-          Browse our available listings or talk to us directly.
-        </p>
-        <div style={{ display: "flex", justifyContent: "center", gap: "14px", flexWrap: "wrap" }}>
-          <Link to="/plots" style={{
-            background: "#fff", color: ACCENT, padding: "13px 28px",
-            borderRadius: "8px", fontWeight: 700, fontSize: "15px",
-          }}>
-            View Plots →
-          </Link>
-          <a href="tel:+919347102038" style={{
-            background: "transparent", color: "#fff",
-            border: "1.5px solid rgba(255,255,255,0.6)",
-            padding: "13px 28px", borderRadius: "8px", fontWeight: 500, fontSize: "15px",
-          }}>
-            Call Us
-          </a>
+      <section style={{ padding: "0 32px 80px" }}>
+        <div style={{ maxWidth: "1280px", margin: "0 auto" }}>
+          <div style={{ background: "linear-gradient(135deg, #1a1208 0%, #3d2810 100%)", borderRadius: "20px", padding: "60px 40px", textAlign: "center" }}>
+            <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: "clamp(22px,3vw,38px)", fontWeight: 700, color: "#fff", marginBottom: "14px" }}>
+              Let's find your perfect plot
+            </h2>
+            <p style={{ color: "rgba(255,255,255,0.65)", fontSize: "16px", marginBottom: "32px" }}>Browse our available listings or talk to us directly.</p>
+            <div style={{ display: "flex", justifyContent: "center", gap: "14px", flexWrap: "wrap" }}>
+              <Link to="/plots" style={{ background: "#fff", color: "#1a1208", padding: "13px 28px", borderRadius: "10px", fontWeight: 700, fontSize: "15px" }}>
+                View Plots →
+              </Link>
+              <a href="tel:+919347102038" style={{ background: "rgba(255,255,255,0.1)", color: "#fff", border: "1px solid rgba(255,255,255,0.2)", padding: "13px 28px", borderRadius: "10px", fontWeight: 500, fontSize: "15px" }}>
+                Call Us
+              </a>
+            </div>
+          </div>
         </div>
       </section>
     </div>

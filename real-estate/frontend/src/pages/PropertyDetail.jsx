@@ -142,11 +142,11 @@ export default function PropertyDetail() {
     setSubmitted(true);
   };
 
-  if (loading) return <div style={{ textAlign: "center", padding: "80px", color: "#7a6655" }}>Loading...</div>;
+  if (loading) return <div style={{ textAlign: "center", padding: "120px", color: "#7a6655", fontSize: "16px" }}>Loading...</div>;
   if (!plot) return (
-    <div style={{ textAlign: "center", padding: "80px" }}>
-      <p style={{ color: "#7a6655", marginBottom: "16px" }}>Plot not found.</p>
-      <Link to="/plots" style={{ color: ACCENT }}>← Back to plots</Link>
+    <div style={{ textAlign: "center", padding: "120px" }}>
+      <p style={{ color: "#7a6655", marginBottom: "16px", fontSize: "18px" }}>Plot not found.</p>
+      <button onClick={() => window.history.back()} style={{ background: ACCENT, color: "#fff", border: "none", padding: "12px 24px", borderRadius: "8px", fontWeight: 600, cursor: "pointer" }}>← Go Back</button>
     </div>
   );
 
@@ -154,23 +154,25 @@ export default function PropertyDetail() {
   const allImages = (images && images.length > 0) ? images : (image ? [image] : []);
 
   return (
-    <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "28px 16px" }}>
+    <div style={{ background: "#fff", minHeight: "100vh" }}>
       <style>{`
-        .detail-grid { display: grid; grid-template-columns: 1fr 340px; gap: 40px; align-items: start; }
-        .detail-img { border-radius: 16px; overflow: hidden; height: 440px; margin-bottom: 36px; }
-        @media (max-width: 900px) {
+        .detail-grid { display: grid; grid-template-columns: 1fr 360px; gap: 48px; align-items: start; }
+        .detail-img { border-radius: 20px; overflow: hidden; height: 480px; margin-bottom: 40px; }
+        @media (max-width: 960px) {
           .detail-grid { grid-template-columns: 1fr !important; }
-          .detail-img { height: 240px !important; }
+          .detail-img { height: 260px !important; }
           .enquiry-card { position: static !important; }
         }
       `}</style>
-      <button onClick={() => window.history.back()} style={{ background: "none", border: "none", color: ACCENT, fontWeight: 500, fontSize: "14px", cursor: "pointer", display: "inline-block", marginBottom: "24px", padding: 0 }}>
-        ← Back
-      </button>
 
-      <ImageCarousel images={allImages} />
+      <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "32px 24px" }}>
+        <button onClick={() => window.history.back()} style={{ background: "none", border: "1px solid #e8ddd3", color: "#5a4a3a", fontWeight: 500, fontSize: "14px", cursor: "pointer", display: "inline-flex", alignItems: "center", gap: "6px", marginBottom: "28px", padding: "8px 16px", borderRadius: "8px" }}>
+          ← Back
+        </button>
 
-      <div className="detail-grid">
+        <ImageCarousel images={allImages} />
+
+        <div className="detail-grid">
         {/* Left */}
         <div>
           <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", marginBottom: "14px" }}>
@@ -184,11 +186,11 @@ export default function PropertyDetail() {
             ₹{Number(price).toLocaleString("en-IN")} / {priceUnit}
           </p>
 
-          <div style={{ display: "flex", gap: "32px", padding: "20px", background: "#faf7f3", borderRadius: "12px", marginBottom: "28px", border: "1px solid #e8ddd3", flexWrap: "wrap" }}>
+          <div style={{ display: "flex", gap: "24px", padding: "24px", background: "#f7f3ee", borderRadius: "14px", marginBottom: "32px", border: "1px solid #ede5db", flexWrap: "wrap" }}>
             {[{ label: "Plot Size", value: sizeRange }, { label: "Facing", value: facing }, { label: "Approval", value: approvals }, { label: "Type", value: category }].map((d) => (
               <div key={d.label}>
-                <p style={{ fontSize: "12px", color: "#7a6655", marginBottom: "4px", textTransform: "uppercase", letterSpacing: "0.5px" }}>{d.label}</p>
-                <p style={{ fontWeight: 600, fontSize: "15px", color: "#2c1a0e" }}>{d.value}</p>
+                <p style={{ fontSize: "11px", color: "#9a8070", marginBottom: "4px", textTransform: "uppercase", letterSpacing: "1px", fontWeight: 600 }}>{d.label}</p>
+                <p style={{ fontWeight: 700, fontSize: "15px", color: "#1a1208" }}>{d.value}</p>
               </div>
             ))}
           </div>
@@ -207,7 +209,7 @@ export default function PropertyDetail() {
         </div>
 
         {/* Enquiry */}
-        <div className="enquiry-card" style={{ background: "#fff", borderRadius: "16px", padding: "28px", border: "1px solid #e8ddd3", boxShadow: "0 4px 20px rgba(122,92,46,0.08)", position: "sticky", top: "80px" }}>
+        <div className="enquiry-card" style={{ background: "#fff", borderRadius: "20px", padding: "32px", border: "1px solid #ede5db", boxShadow: "0 8px 32px rgba(0,0,0,0.08)", position: "sticky", top: "88px" }}>
           <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: "18px", fontWeight: 700, marginBottom: "6px" }}>Enquire about this plot</h3>
           <p style={{ fontSize: "13px", color: "#7a6655", marginBottom: "22px" }}>Fill your details to chat on WhatsApp.</p>
 
@@ -236,6 +238,7 @@ export default function PropertyDetail() {
               </a>
             </form>
           )}
+        </div>
         </div>
       </div>
     </div>
