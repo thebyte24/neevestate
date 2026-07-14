@@ -390,6 +390,7 @@ function MultiImageUploader({ images = [], onChange }) {
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState("");
   const [urlInput, setUrlInput] = useState("");
+  const [confirmImgDelete, setConfirmImgDelete] = useState(null); // index
   const fileRef = useRef();
 
   const addUrl = () => {
@@ -443,12 +444,24 @@ function MultiImageUploader({ images = [], onChange }) {
                   COVER
                 </span>
               )}
+              {/* Confirm overlay */}
+              {confirmImgDelete === i && (
+                <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.72)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "6px", padding: "8px" }}>
+                  <p style={{ color: "#fff", fontSize: "11px", fontWeight: 600, textAlign: "center", margin: 0 }}>Remove this image?</p>
+                  <div style={{ display: "flex", gap: "6px" }}>
+                    <button type="button" onClick={() => { onChange(images.filter((_, x) => x !== i)); setConfirmImgDelete(null); }}
+                      style={{ background: "#b91c1c", color: "#fff", border: "none", borderRadius: "4px", padding: "3px 10px", fontSize: "11px", fontWeight: 700, cursor: "pointer" }}>Yes</button>
+                    <button type="button" onClick={() => setConfirmImgDelete(null)}
+                      style={{ background: "#fff", color: "#2c1a0e", border: "none", borderRadius: "4px", padding: "3px 10px", fontSize: "11px", fontWeight: 700, cursor: "pointer" }}>No</button>
+                  </div>
+                </div>
+              )}
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "4px 8px", background: "#faf7f3" }}>
                 {i > 0 ? (
                   <button type="button" onClick={() => moveUp(i)} title="Make cover"
                     style={{ background: "none", border: "none", cursor: "pointer", fontSize: "14px", color: ACCENT, padding: "2px" }}>⬆</button>
                 ) : <span style={{ width: "20px" }} />}
-                <button type="button" onClick={() => remove(i)} title="Remove image"
+                <button type="button" onClick={() => setConfirmImgDelete(i)} title="Remove image"
                   style={{ background: "#fee2e2", border: "none", cursor: "pointer", fontSize: "12px", color: "#b91c1c", borderRadius: "4px", padding: "2px 7px", fontWeight: 700 }}>✕</button>
               </div>
             </div>
