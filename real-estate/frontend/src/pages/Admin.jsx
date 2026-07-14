@@ -6,7 +6,7 @@ import {
 import { db } from "../firebase";
 import { seedData } from "../seed";
 
-const CLOUDINARY_CLOUD = "dzhctf6ew";
+const CLOUDINARY_CLOUD = "dzhcf6ew";
 const CLOUDINARY_PRESET = "neevestate_uploads";
 
 async function uploadToCloudinary(file, onProgress) {
