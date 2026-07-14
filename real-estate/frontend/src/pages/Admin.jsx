@@ -207,16 +207,7 @@ export default function Admin() {
         </button>
       </div>
 
-      {/* Seed banner — shown until data exists */}
-      <div style={{ background: "#fffbeb", borderBottom: "1px solid #fde68a", padding: "12px 32px", display: "flex", alignItems: "center", gap: "16px" }}>
-        <p style={{ fontSize: "13px", color: "#92400e", flex: 1 }}>
-          First time setup? Click "Seed Database" to load your 6 default properties into Firestore.
-        </p>
-        <button onClick={handleSeed} disabled={seeding} style={{ ...btnPrimary, background: "#d97706", fontSize: "13px", padding: "8px 18px" }}>
-          {seeding ? "Seeding..." : "🌱 Seed Database"}
-        </button>
-        {seedMsg && <span style={{ fontSize: "13px", color: "#15803d", fontWeight: 600 }}>✓ {seedMsg}</span>}
-      </div>
+      {/* Seed banner removed */}
 
       <div style={{ maxWidth: "1000px", margin: "0 auto", padding: "36px 24px" }}>
         <div style={{ display: "flex", gap: "4px", marginBottom: "32px", borderBottom: "1px solid #e8ddd3" }}>
@@ -256,11 +247,10 @@ export default function Admin() {
                 <input style={inputStyle} value={hero.cta2 || ""} onChange={(e) => setHero({ ...hero, cta2: e.target.value })} />
               </div>
               <div style={{ gridColumn: "1 / -1" }}>
-                <label style={labelStyle}>Background Image</label>
-                <ImageUploader
-                  currentUrl={hero.imageUrl}
-                  onUpload={(url) => setHero({ ...hero, imageUrl: url })}
-                  previewHeight="160px"
+                <label style={labelStyle}>Background Images</label>
+                <MultiImageUploader
+                  images={hero.images || (hero.imageUrl ? [hero.imageUrl] : [])}
+                  onChange={(imgs) => setHero({ ...hero, images: imgs, imageUrl: imgs[0] || "" })}
                 />
               </div>
             </div>
