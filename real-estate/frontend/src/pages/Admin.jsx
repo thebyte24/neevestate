@@ -79,6 +79,7 @@ export default function Admin() {
   const [plotMsg, setPlotMsg] = useState("");
   const [seeding, setSeeding] = useState(false);
   const [seedMsg, setSeedMsg] = useState("");
+  const [confirmDelete, setConfirmDelete] = useState(null); // { id, title }
 
   const login = async (e) => {
     e.preventDefault();
@@ -134,9 +135,9 @@ export default function Admin() {
   };
 
   const deletePlot = async (id) => {
-    if (!confirm("Delete this plot?")) return;
     await deleteDoc(doc(db, "properties", id));
     setPlots((p) => p.filter((x) => x.id !== id));
+    setConfirmDelete(null);
     setPlotMsg("Plot deleted.");
     setTimeout(() => setPlotMsg(""), 3000);
   };
@@ -173,6 +174,28 @@ export default function Admin() {
 
   return (
     <div style={{ minHeight: "100vh", background: "#f5f0eb" }}>
+      {/* Delete Confirmation Modal */}
+      {confirmDelete && (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.45)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <div style={{ background: "#fff", borderRadius: "14px", padding: "32px 28px", maxWidth: "380px", width: "90%", boxShadow: "0 12px 40px rgba(0,0,0,0.18)", textAlign: "center" }}>
+            <div style={{ fontSize: "40px", marginBottom: "12px" }}>🗑️</div>
+            <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: "18px", marginBottom: "8px", color: "#2c1a0e" }}>Delete Plot?</h3>
+            <p style={{ fontSize: "14px", color: "#7a6655", marginBottom: "24px", lineHeight: 1.6 }}>
+              Are you sure you want to delete <strong>"{confirmDelete.title}"</strong>? This action cannot be undone.
+            </p>
+            <div style={{ display: "flex", gap: "10px", justifyContent: "center" }}>
+              <button onClick={() => setConfirmDelete(null)}
+                style={{ padding: "10px 24px", borderRadius: "8px", border: "1px solid #ddd6ce", background: "#f1f5f9", color: "#4a3728", fontWeight: 600, fontSize: "14px", cursor: "pointer" }}>
+                Cancel
+              </button>
+              <button onClick={() => deletePlot(confirmDelete.id)}
+                style={{ padding: "10px 24px", borderRadius: "8px", border: "none", background: "#b91c1c", color: "#fff", fontWeight: 600, fontSize: "14px", cursor: "pointer" }}>
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       <div style={{ background: "#fff", borderBottom: "1px solid #e8ddd3", padding: "0 32px", height: "60px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <div>
           <span style={{ fontFamily: "'Playfair Display', serif", fontWeight: 700, fontSize: "18px", color: "#2c1a0e" }}>Neev</span>
@@ -293,7 +316,7 @@ export default function Admin() {
                     </div>
                     <div style={{ display: "flex", gap: "8px", flexShrink: 0 }}>
                       <button onClick={() => { setIsNew(false); setEditingPlot({ ...p, features: Array.isArray(p.features) ? p.features.join(", ") : p.features, images: p.images || (p.image ? [p.image] : []) }); }} style={{ ...btnPrimary, padding: "7px 16px" }}>Edit</button>
-                      <button onClick={() => deletePlot(p.id)} style={btnDanger}>Delete</button>
+                      <button onClick={() => setConfirmDelete({ id: p.id, title: p.title })} style={btnDanger}>Delete</button>
                     </div>
                   </div>
                 ))}
