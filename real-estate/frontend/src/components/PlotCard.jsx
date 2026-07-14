@@ -8,7 +8,8 @@ const BADGE_COLORS = {
 };
 
 export default function PlotCard({ property }) {
-  const { id, title, price, priceUnit, badge, sizeRange, facing, location, image } = property;
+  const { id, title, price, priceUnit, badge, sizeRange, facing, location, image, images } = property;
+  const coverImage = (images && images.length > 0) ? images[0] : image;
   const badgeStyle = BADGE_COLORS[badge] || { bg: "#fff", text: "#2c1a0e" };
 
   return (
@@ -33,7 +34,7 @@ export default function PlotCard({ property }) {
       >
         {/* Image */}
         <div style={{ position: "relative", height: "260px", overflow: "hidden" }}>
-          <img src={image} alt={title} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+          <img src={coverImage} alt={title} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
           {badge && (
             <span style={{
               position: "absolute", top: "12px", left: "12px",
@@ -43,6 +44,15 @@ export default function PlotCard({ property }) {
               boxShadow: "0 2px 6px rgba(0,0,0,0.12)",
             }}>
               {badge}
+            </span>
+          )}
+          {images && images.length > 1 && (
+            <span style={{
+              position: "absolute", bottom: "10px", right: "10px",
+              background: "rgba(0,0,0,0.5)", color: "#fff",
+              padding: "3px 9px", borderRadius: "12px", fontSize: "11px",
+            }}>
+              📷 {images.length}
             </span>
           )}
         </div>

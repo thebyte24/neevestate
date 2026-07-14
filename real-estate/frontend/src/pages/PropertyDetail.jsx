@@ -6,6 +6,63 @@ import { db } from "../firebase";
 const ACCENT = "#7a5c2e";
 const ACCENT_LIGHT = "#f0e8df";
 
+function ImageCarousel({ images }) {
+  const [current, setCurrent] = useState(0);
+  const [touchStart, setTouchStart] = useState(null);
+
+  if (!images || images.length === 0) return null;
+  if (images.length === 1) {
+    return (
+      <div className="detail-img">
+        <img src={images[0]} alt="plot" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+      </div>
+    );
+  }
+
+  const prev = () => setCurrent((c) => (c - 1 + images.length) % images.length);
+  const next = () => setCurrent((c) => (c + 1) % images.length);
+
+  const onTouchStart = (e) => setTouchStart(e.touches[0].clientX);
+  const onTouchEnd = (e) => {
+    if (touchStart === null) return;
+    const diff = touchStart - e.changedTouches[0].clientX;
+    if (Math.abs(diff) > 40) diff > 0 ? next() : prev();
+    setTouchStart(null);
+  };
+
+  const btnBase = {
+    position: "absolute", top: "50%", transform: "translateY(-50%)",
+    background: "rgba(255,255,255,0.85)", border: "none", borderRadius: "50%",
+    width: "38px", height: "38px", fontSize: "18px", cursor: "pointer",
+    display: "flex", alignItems: "center", justifyContent: "center",
+    boxShadow: "0 2px 8px rgba(0,0,0,0.18)", zIndex: 2, color: "#2c1a0e",
+  };
+
+  return (
+    <div className="detail-img" style={{ position: "relative" }}
+      onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
+      <img src={images[current]} alt={`plot-${current + 1}`}
+        style={{ width: "100%", height: "100%", objectFit: "cover", transition: "opacity 0.25s" }} />
+      <button style={{ ...btnBase, left: "12px" }} onClick={prev}>‹</button>
+      <button style={{ ...btnBase, right: "12px" }} onClick={next}>›</button>
+      {/* Dots */}
+      <div style={{ position: "absolute", bottom: "12px", left: "50%", transform: "translateX(-50%)", display: "flex", gap: "6px" }}>
+        {images.map((_, i) => (
+          <button key={i} onClick={() => setCurrent(i)} style={{
+            width: i === current ? "20px" : "8px", height: "8px",
+            borderRadius: "4px", border: "none", cursor: "pointer",
+            background: i === current ? ACCENT : "rgba(255,255,255,0.7)",
+            transition: "all 0.2s", padding: 0,
+          }} />
+        ))}
+      </div>
+      <span style={{ position: "absolute", top: "12px", right: "12px", background: "rgba(0,0,0,0.5)", color: "#fff", fontSize: "12px", padding: "3px 10px", borderRadius: "12px" }}>
+        {current + 1} / {images.length}
+      </span>
+    </div>
+  );
+}
+
 export default function PropertyDetail() {
   const { id } = useParams();
   const [plot, setPlot] = useState(null);
@@ -39,7 +96,8 @@ export default function PropertyDetail() {
     </div>
   );
 
-  const { title, price, priceUnit, badge, sizeRange, facing, location, image, description, features, approvals, category } = plot;
+  const { title, price, priceUnit, badge, sizeRange, facing, location, image, images, description, features, approvals, category } = plot;
+  const allImages = (images && images.length > 0) ? images : (image ? [image] : []);
 
   return (
     <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "28px 16px" }}>
@@ -56,9 +114,7 @@ export default function PropertyDetail() {
         ← Back to plots
       </Link>
 
-      <div className="detail-img">
-        <img src={image} alt={title} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-      </div>
+      <ImageCarousel images={allImages} />
 
       <div className="detail-grid">
         {/* Left */}

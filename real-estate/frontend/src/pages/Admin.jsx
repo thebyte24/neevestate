@@ -60,7 +60,7 @@ const btnDanger = {
 const BLANK_PLOT = {
   title: "", price: "", priceUnit: "Ankanam", badge: "DTCP Approved",
   type: "Open Plot", sizeRange: "", facing: "", location: "",
-  city: "", image: "", description: "", features: "", approvals: "DTCP", category: "Open Plot",
+  city: "", image: "", images: [], description: "", features: "", approvals: "DTCP", category: "Open Plot",
 };
 
 export default function Admin() {
@@ -104,6 +104,7 @@ export default function Admin() {
   };
 
   const savePlot = async () => {
+    const imgs = Array.isArray(editingPlot.images) ? editingPlot.images.filter(Boolean) : [];
     const body = {
       ...editingPlot,
       price: parseInt(editingPlot.price),
@@ -114,6 +115,9 @@ export default function Admin() {
       features: typeof editingPlot.features === "string"
         ? editingPlot.features.split(",").map((f) => f.trim()).filter(Boolean)
         : editingPlot.features,
+      images: imgs,
+      // keep legacy `image` as first image for backwards compat
+      image: imgs[0] || editingPlot.image || "",
     };
     delete body.id;
 
@@ -282,7 +286,7 @@ export default function Admin() {
                       </div>
                     </div>
                     <div style={{ display: "flex", gap: "8px", flexShrink: 0 }}>
-                      <button onClick={() => { setIsNew(false); setEditingPlot({ ...p, features: Array.isArray(p.features) ? p.features.join(", ") : p.features }); }} style={{ ...btnPrimary, padding: "7px 16px" }}>Edit</button>
+                      <button onClick={() => { setIsNew(false); setEditingPlot({ ...p, features: Array.isArray(p.features) ? p.features.join(", ") : p.features, images: p.images || (p.image ? [p.image] : []) }); }} style={{ ...btnPrimary, padding: "7px 16px" }}>Edit</button>
                       <button onClick={() => deletePlot(p.id)} style={btnDanger}>Delete</button>
                     </div>
                   </div>
@@ -351,7 +355,90 @@ function ImageUploader({ currentUrl, onUpload, previewHeight = "140px" }) {
   );
 }
 
-// ── Plot Form ──
+// ── Multi-Image Uploader ──
+function MultiImageUploader({ images = [], onChange }) {
+  const [uploading, setUploading] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [error, setError] = useState("");
+  const fileRef = useRef();
+
+  const handleFiles = async (e) => {
+    const files = Array.from(e.target.files);
+    if (!files.length) return;
+    setUploading(true);
+    setError("");
+    try {
+      const urls = [];
+      for (let i = 0; i < files.length; i++) {
+        const url = await uploadToCloudinary(files[i], (p) =>
+          setProgress(Math.round(((i + p / 100) / files.length) * 100))
+        );
+        urls.push(url);
+      }
+      onChange([...images, ...urls]);
+    } catch (err) {
+      setError(err.message || "Upload failed. Try again.");
+    } finally {
+      setUploading(false);
+      setProgress(0);
+      e.target.value = "";
+    }
+  };
+
+  const remove = (idx) => onChange(images.filter((_, i) => i !== idx));
+  const moveUp = (idx) => {
+    if (idx === 0) return;
+    const arr = [...images];
+    [arr[idx - 1], arr[idx]] = [arr[idx], arr[idx - 1]];
+    onChange(arr);
+  };
+
+  return (
+    <div>
+      {/* Thumbnail grid */}
+      {images.length > 0 && (
+        <div style={{ display: "flex", flexWrap: "wrap", gap: "10px", marginBottom: "12px" }}>
+          {images.map((url, i) => (
+            <div key={i} style={{ position: "relative", width: "120px", borderRadius: "8px", overflow: "hidden", border: i === 0 ? `2px solid ${ACCENT}` : "2px solid #e8ddd3" }}>
+              <img src={url} alt={`img-${i}`} style={{ width: "100%", height: "80px", objectFit: "cover", display: "block" }} />
+              {i === 0 && (
+                <span style={{ position: "absolute", top: "4px", left: "4px", background: ACCENT, color: "#fff", fontSize: "10px", fontWeight: 700, padding: "2px 6px", borderRadius: "4px" }}>
+                  COVER
+                </span>
+              )}
+              <div style={{ display: "flex", justifyContent: "space-between", padding: "4px 6px", background: "#faf7f3" }}>
+                {i > 0 ? (
+                  <button type="button" onClick={() => moveUp(i)} title="Set as cover"
+                    style={{ background: "none", border: "none", cursor: "pointer", fontSize: "13px", color: ACCENT }}>⬆</button>
+                ) : <span />}
+                <button type="button" onClick={() => remove(i)} title="Remove"
+                  style={{ background: "none", border: "none", cursor: "pointer", fontSize: "13px", color: "#b91c1c" }}>✕</button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Upload button */}
+      <button type="button" onClick={() => fileRef.current.click()}
+        style={{ ...inputStyle, width: "auto", whiteSpace: "nowrap", cursor: "pointer", background: ACCENT_LIGHT, color: ACCENT, fontWeight: 600, display: "inline-block" }}>
+        📁 Add Images {images.length > 0 ? `(${images.length} added)` : ""}
+      </button>
+      <input ref={fileRef} type="file" accept="image/*" multiple onChange={handleFiles} style={{ display: "none" }} />
+
+      {uploading && (
+        <div style={{ marginTop: "8px" }}>
+          <div style={{ height: "4px", background: "#e8ddd3", borderRadius: "2px" }}>
+            <div style={{ height: "100%", width: `${progress}%`, background: ACCENT, borderRadius: "2px", transition: "width 0.2s" }} />
+          </div>
+          <p style={{ fontSize: "12px", color: "#7a6655", marginTop: "4px" }}>Uploading... {progress}%</p>
+        </div>
+      )}
+      {error && <p style={{ fontSize: "12px", color: "#b91c1c", marginTop: "4px" }}>{error}</p>}
+      {images.length > 0 && <p style={{ fontSize: "11px", color: "#7a6655", marginTop: "6px" }}>First image is the cover. Use ⬆ to reorder.</p>}
+    </div>
+  );
+}
 function PlotForm({ plot, onChange }) {
   const set = (k) => (e) => onChange((p) => ({ ...p, [k]: e.target.value }));
 
@@ -398,8 +485,11 @@ function PlotForm({ plot, onChange }) {
         <input style={inputStyle} value={plot.location} onChange={set("location")} placeholder="Amaravati Capital Region, Guntur Dist., AP" />
       </div>
       <div style={{ gridColumn: "1 / -1" }}>
-        <label style={labelStyle}>Plot Image</label>
-        <ImageUploader currentUrl={plot.image} onUpload={(url) => onChange((p) => ({ ...p, image: url }))} />
+        <label style={labelStyle}>Plot Images</label>
+        <MultiImageUploader
+          images={plot.images || (plot.image ? [plot.image] : [])}
+          onChange={(imgs) => onChange((p) => ({ ...p, images: imgs }))}
+        />
       </div>
       <div style={{ gridColumn: "1 / -1" }}>
         <label style={labelStyle}>Description</label>
