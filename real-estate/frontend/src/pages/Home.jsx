@@ -88,9 +88,12 @@ export default function Home() {
           <div key={i} style={{ position: "absolute", inset: 0, opacity: i === slide ? 1 : 0, transition: "opacity 0.9s ease", zIndex: 0 }}>
             {item.type === "video"
               ? <video
+                  key={`video-${i}-${slide}`}
                   ref={i === slide ? videoRef : null}
                   src={item.url}
-                  autoPlay muted playsInline
+                  autoPlay={i === slide}
+                  muted
+                  playsInline
                   onEnded={goNext}
                   style={{ width: "100%", height: "100%", objectFit: "cover" }}
                 />
